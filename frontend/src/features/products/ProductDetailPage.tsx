@@ -11,6 +11,7 @@ import {
   validateProductInput,
   validateStockAdjust,
 } from '../../lib/validation';
+import { DetailPanelSkeleton } from '../../components/ui/LoadingSkeletons';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -20,8 +21,11 @@ export default function ProductDetailPage() {
   const [stockAmount, setStockAmount] = useState('');
   const [stockError, setStockError] = useState('');
   const [editError, setEditError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [adjusting, setAdjusting] = useState(false);
 
   useEffect(() => {
+    setProduct(null);
     fetch(`/api/products/${id}`)
       .then((r) => r.json())
       .then((data) => setProduct(data));
@@ -57,6 +61,7 @@ export default function ProductDetailPage() {
     }
 
     setEditError('');
+    setSaving(true);
     fetch(`/api/products/${product.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -84,8 +89,12 @@ export default function ProductDetailPage() {
         setProduct(data);
         setIsEditing(false);
         setEditData(null);
+        setSaving(false);
       })
-      .catch((e) => setEditError(e.message || 'Failed to update product'));
+      .catch((e) => {
+        setSaving(false);
+        setEditError(e.message || 'Failed to update product');
+      });
   };
 
   const handleStockAdjust = () => {
@@ -96,6 +105,7 @@ export default function ProductDetailPage() {
     }
 
     setStockError('');
+    setAdjusting(true);
     fetch(`/api/products/${product.id}/stock?amount=${Number(stockAmount)}`, {
       method: 'PATCH',
     })
@@ -115,16 +125,16 @@ export default function ProductDetailPage() {
       .then((data) => {
         setProduct(data);
         setStockAmount('');
+        setAdjusting(false);
       })
-      .catch((e) => setStockError(e.message || 'Failed to adjust stock'));
+      .catch((e) => {
+        setAdjusting(false);
+        setStockError(e.message || 'Failed to adjust stock');
+      });
   };
 
   if (!product) {
-    return (
-      <p className="text-sm text-default-500" role="status" aria-live="polite">
-        Loading product…
-      </p>
-    );
+    return <DetailPanelSkeleton />;
   }
 
   return (
@@ -169,7 +179,7 @@ export default function ProductDetailPage() {
                 className="w-full rounded-lg border border-default-200 bg-white px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 <option value="">Select a category</option>
-                {!PRODUCT_CATEGORIES.includes(editData.category) && editData.category ? (
+                {!(PRODUCT_CATEGORIES as readonly string[]).includes(editData.category) && editData.category ? (
                   <option value={editData.category}>
                     {editData.category} (invalid — choose a valid category)
                   </option>
@@ -206,10 +216,10 @@ export default function ProductDetailPage() {
               </p>
             ) : null}
             <div className="flex gap-2">
-              <Button variant="primary" onPress={handleUpdate}>
-                Save Changes
+              <Button variant="primary" onPress={handleUpdate} isDisabled={saving}>
+                {saving ? 'Saving…' : 'Save Changes'}
               </Button>
-              <Button variant="outline" onPress={handleCancelEdit}>
+              <Button variant="outline" onPress={handleCancelEdit} isDisabled={saving}>
                 Cancel
               </Button>
             </div>
@@ -237,8 +247,8 @@ export default function ProductDetailPage() {
               inputMode="numeric"
             />
           </TextField>
-          <Button variant="primary" onPress={handleStockAdjust}>
-            Adjust
+          <Button variant="primary" onPress={handleStockAdjust} isDisabled={adjusting}>
+            {adjusting ? 'Adjusting…' : 'Adjust'}
           </Button>
         </div>
         {stockError ? (

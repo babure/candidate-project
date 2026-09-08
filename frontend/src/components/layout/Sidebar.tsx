@@ -1,7 +1,8 @@
+import { useNavigate } from 'react-router-dom';
 import { NavIcons, type NavIconId } from '../ui/NavIcons';
 
 type NavItem = {
-  id: NavIconId;
+  id: Exclude<NavIconId, 'exit'>;
   label: string;
   disabled?: boolean;
 };
@@ -19,17 +20,24 @@ const omsItems: NavItem[] = [
   { id: 'orders', label: 'Orders' },
 ];
 
-export default function Sidebar({ active, system = 'ims', onNavigate }: any) {
+export default function Sidebar({ active, system = 'ims', onNavigate, onExitSystem }: any) {
+  const navigate = useNavigate();
   const items = system === 'oms' ? omsItems : imsItems;
   const navLabel = system === 'oms' ? 'Order Management menu' : 'Inventory Management menu';
+  const ExitIcon = NavIcons.exit;
+
+  const handleExit = () => {
+    if (onExitSystem) onExitSystem();
+    else navigate('/');
+  };
 
   return (
     <aside
       className="flex w-56 shrink-0 flex-col border-r border-default-200 bg-white"
       aria-label={navLabel}
     >
-      <div className="p-3">
-        <nav aria-label={navLabel}>
+      <div className="flex min-h-0 flex-1 flex-col p-3">
+        <nav aria-label={navLabel} className="min-h-0 flex-1">
           <ul className="flex flex-col gap-1">
             {items.map((item) => {
               const selected = active === item.id;
@@ -71,6 +79,19 @@ export default function Sidebar({ active, system = 'ims', onNavigate }: any) {
             })}
           </ul>
         </nav>
+
+        <div className="mt-3 border-t border-default-200 pt-3">
+          <button
+            type="button"
+            onClick={handleExit}
+            className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-transparent px-2.5 py-2 text-sm text-default-600 outline-none transition-colors hover:border-default-200 hover:bg-default-50 hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            <span className="text-default-500">
+              <ExitIcon />
+            </span>
+            <span>Exit system</span>
+          </button>
+        </div>
       </div>
     </aside>
   );

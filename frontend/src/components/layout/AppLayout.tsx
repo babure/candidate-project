@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import TopBar from './TopBar';
 import Sidebar from './Sidebar';
 
@@ -10,6 +11,8 @@ export default function AppLayout({
   active = 'products',
   onNavigate,
 }: any) {
+  const navigate = useNavigate();
+
   return (
     <div className="flex h-dvh flex-col bg-default-100">
       <TopBar
@@ -19,7 +22,12 @@ export default function AppLayout({
         system={system}
       />
       <div className="flex min-h-0 flex-1 overflow-hidden">
-        <Sidebar active={active} system={system} onNavigate={onNavigate} />
+        <Sidebar
+          active={active}
+          system={system}
+          onNavigate={onNavigate}
+          onExitSystem={() => navigate('/')}
+        />
         <main
           id="main-content"
           className="min-w-0 flex-1 overflow-y-auto p-6"

@@ -76,6 +76,30 @@ public class OrderService {
         return orderRepo.save(order);
     }
 
+    @Transactional
+    public OrderEntity cancelOrder(Long id) {
+        OrderEntity order = getOrder(id);
+        if (order.getStatus() != OrderStatus.CREATED) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Only orders with status CREATED can be cancelled"
+            );
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+
+        if (order.getProductId() != null) {
+            productRepo.findById(order.getProductId()).ifPresent(product -> {
+                int stock = product.getStock() == null ? 0 : product.getStock();
+                int qty = order.getQuantity() == null ? 0 : order.getQuantity();
+                product.setStock(stock + qty);
+                productRepo.save(product);
+            });
+        }
+
+        return orderRepo.save(order);
+    }
+
     public List<OrderEntity> listOrders(Integer userId) {
         if (userId != null) {
             return orderRepo.findByUserIdOrderByCreatedAtDesc(userId);

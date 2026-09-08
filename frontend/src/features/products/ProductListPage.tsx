@@ -5,6 +5,7 @@ import AddProductModal from './AddProductModal';
 import PageHeader from '../../components/ui/PageHeader';
 import EmptyState from '../../components/ui/EmptyState';
 import DataTableShell from '../../components/ui/DataTableShell';
+import { TableListSkeleton } from '../../components/ui/LoadingSkeletons';
 
 export default function ProductListPage() {
   const [products, setProducts] = useState<any[] | null>(null);
@@ -34,9 +35,7 @@ export default function ProductListPage() {
       />
 
       {products === null ? (
-        <p className="text-sm text-default-500" role="status" aria-live="polite">
-          Loading products…
-        </p>
+        <TableListSkeleton cols={6} />
       ) : products.length === 0 ? (
         <EmptyState
           title="No products yet"

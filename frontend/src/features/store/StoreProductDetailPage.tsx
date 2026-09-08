@@ -6,6 +6,7 @@ import BackLink from '../../components/ui/BackLink';
 import Panel from '../../components/ui/Panel';
 import DetailField from '../../components/ui/DetailField';
 import { PRODUCT_RULES, validateOrderQuantity } from '../../lib/validation';
+import { DetailPanelSkeleton } from '../../components/ui/LoadingSkeletons';
 
 export default function StoreProductDetailPage() {
   const { id } = useParams();
@@ -17,6 +18,7 @@ export default function StoreProductDetailPage() {
   const [placing, setPlacing] = useState(false);
 
   useEffect(() => {
+    setProduct(null);
     fetch(`/api/store/products/${id}`)
       .then((r) => r.json())
       .then((data) => setProduct(data));
@@ -65,11 +67,7 @@ export default function StoreProductDetailPage() {
   };
 
   if (!product) {
-    return (
-      <p className="text-sm text-default-500" role="status" aria-live="polite">
-        Loading product…
-      </p>
-    );
+    return <DetailPanelSkeleton />;
   }
 
   return (

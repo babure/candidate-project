@@ -82,3 +82,31 @@ model: Composer
 prompt: |
   Check the validations in the frontend and the backend. Refer to PRODUCT.md and TASKS.md and check if they are in place or if we need to add them. Make sure the frontend, backend, and DB validations match.
 ---
+timestamp: 2026-09-08T07:17:00Z
+model: Composer
+prompt: |
+  Minimum requirements are implemented and working. Next I want to improve the system respecting the out-of-scope items in PRODUCT.md and TASKS.md.
+  Things I want to add: search for the product catalog; different options to view them (currently only table); sorting based on product name and price; filter options based on category, price ranges, and availability.
+  In the order history I want to sort based on product name, status, total, and date.
+  The different view should only be provided for the product catalog, and I want to implement cancel order.
+  Provide an option to exit the system — currently there is an option to switch systems and clicking the logo exits, but I want a particular Exit button in the side nav below the tabs.
+---
+timestamp: 2026-09-08T07:21:00Z
+model: Composer
+prompt: |
+  I want to add loading screens on actions, loading and empty states if they are not already present, and loading skeletons if these are not out of scope.
+---
+timestamp: 2026-09-08T07:22:00Z
+model: Composer
+prompt: |
+  Implement the Catalog UX, Order Cancel, Exit, and Loading States plan as specified.
+---
+timestamp: 2026-09-08T07:35:00Z
+model: Composer
+prompt: |
+  The search, filter, and sorting controls are taking a lot of space.
+  Sorting should be on the table header columns with icons and direction.
+  Search and filter should be side by side and optimized like shopping pages.
+  Table and Cards should be icon buttons instead of text, placed with the search/filter row.
+  For order history, sorting should be on the table columns instead of a separate dropdown.
+---
