@@ -1,5 +1,11 @@
 import { useState } from 'react';
 import { Modal, Button, TextField, Input, Label } from '@heroui/react';
+import {
+  PRODUCT_CATEGORIES,
+  PRODUCT_RULES,
+  roundMoney,
+  validateProductInput,
+} from '../../lib/validation';
 
 export default function AddProductModal({ isOpen, onClose, onCreated }: any) {
   const [name, setName] = useState('');
@@ -7,6 +13,7 @@ export default function AddProductModal({ isOpen, onClose, onCreated }: any) {
   const [category, setCategory] = useState('');
   const [price, setPrice] = useState('');
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const reset = () => {
     setName('');
@@ -14,19 +21,18 @@ export default function AddProductModal({ isOpen, onClose, onCreated }: any) {
     setCategory('');
     setPrice('');
     setError('');
+    setSaving(false);
   };
 
   const handleSubmit = () => {
-    setError('');
-    if (!name.trim()) {
-      setError('Name is required.');
-      return;
-    }
-    if (price === '' || Number(price) < 0) {
-      setError('Enter a valid price of 0 or greater.');
+    const validationError = validateProductInput({ name, category, description, price });
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
+    setError('');
+    setSaving(true);
     fetch('/api/products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -34,13 +40,30 @@ export default function AddProductModal({ isOpen, onClose, onCreated }: any) {
         name: name.trim(),
         description,
         category,
-        price: Number(price),
+        price: roundMoney(Number(price)),
         stock: 0,
       }),
-    }).then(() => {
-      reset();
-      onCreated();
-    });
+    })
+      .then(async (r) => {
+        if (!r.ok) {
+          const text = await r.text();
+          let message = 'Failed to create product';
+          try {
+            message = JSON.parse(text).message || message;
+          } catch {
+            if (text) message = text;
+          }
+          throw new Error(message);
+        }
+      })
+      .then(() => {
+        reset();
+        onCreated();
+      })
+      .catch((e) => {
+        setSaving(false);
+        setError(e.message || 'Failed to create product');
+      });
   };
 
   return (
@@ -66,21 +89,35 @@ export default function AddProductModal({ isOpen, onClose, onCreated }: any) {
                   <Label>Name</Label>
                   <Input
                     value={name}
+                    maxLength={PRODUCT_RULES.nameMax}
                     onChange={(e: any) => setName(e.target.value)}
                     autoFocus
                   />
                 </TextField>
-                <TextField>
-                  <Label>Category</Label>
-                  <Input
+                <div>
+                  <label htmlFor="add-product-category" className="mb-1 block text-sm font-medium">
+                    Category <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    id="add-product-category"
+                    required
                     value={category}
-                    onChange={(e: any) => setCategory(e.target.value)}
-                  />
-                </TextField>
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full rounded-lg border border-default-200 bg-white px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  >
+                    <option value="">Select a category</option>
+                    {PRODUCT_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <TextField>
                   <Label>Description</Label>
                   <Input
                     value={description}
+                    maxLength={PRODUCT_RULES.descriptionMax}
                     onChange={(e: any) => setDescription(e.target.value)}
                   />
                 </TextField>
@@ -88,7 +125,8 @@ export default function AddProductModal({ isOpen, onClose, onCreated }: any) {
                   <Label>Price</Label>
                   <Input
                     type="number"
-                    min={0}
+                    min={PRODUCT_RULES.priceMin}
+                    max={PRODUCT_RULES.priceMax}
                     step="0.01"
                     value={price}
                     onChange={(e: any) => setPrice(e.target.value)}
@@ -111,8 +149,8 @@ export default function AddProductModal({ isOpen, onClose, onCreated }: any) {
               >
                 Cancel
               </Button>
-              <Button variant="primary" onPress={handleSubmit}>
-                Save
+              <Button variant="primary" onPress={handleSubmit} isDisabled={saving}>
+                {saving ? 'Saving…' : 'Save'}
               </Button>
             </Modal.Footer>
           </Modal.Dialog>

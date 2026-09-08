@@ -77,3 +77,8 @@ prompt: |
   2. Add a divider between the username and the system change text, and make that control clearly look actionable.
   3. Increase the height of the header to match the parent page.
 ---
+timestamp: 2026-09-08T07:05:00Z
+model: Composer
+prompt: |
+  Check the validations in the frontend and the backend. Refer to PRODUCT.md and TASKS.md and check if they are in place or if we need to add them. Make sure the frontend, backend, and DB validations match.
+---

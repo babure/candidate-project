@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -35,8 +37,11 @@ public class OrderService {
         if (request.getQuantity() == null || request.getQuantity() < 1) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantity must be at least 1");
         }
-        if (request.getQuantity() > 999) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantity must be at most 999");
+        if (request.getQuantity() > ProductValidation.QUANTITY_MAX) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Quantity must be at most " + ProductValidation.QUANTITY_MAX
+            );
         }
 
         ProductEntitiy product = productRepo.findById(request.getProductId())
@@ -53,8 +58,11 @@ public class OrderService {
         product.setStock(stock - request.getQuantity());
         productRepo.save(product);
 
-        double unitPrice = product.getPrice() == null ? 0.0 : product.getPrice();
-        double totalAmount = Math.round(unitPrice * request.getQuantity() * 100.0) / 100.0;
+        BigDecimal unitPrice = BigDecimal.valueOf(product.getPrice() == null ? 0.0 : product.getPrice())
+                .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalAmount = unitPrice
+                .multiply(BigDecimal.valueOf(request.getQuantity()))
+                .setScale(2, RoundingMode.HALF_UP);
 
         OrderEntity order = new OrderEntity();
         order.setStatus(OrderStatus.CREATED);
@@ -62,8 +70,8 @@ public class OrderService {
         order.setProductId(product.getId());
         order.setProductName(product.getName());
         order.setQuantity(request.getQuantity());
-        order.setUnitPrice(unitPrice);
-        order.setTotalAmount(totalAmount);
+        order.setUnitPrice(unitPrice.doubleValue());
+        order.setTotalAmount(totalAmount.doubleValue());
 
         return orderRepo.save(order);
     }

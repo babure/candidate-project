@@ -20,6 +20,7 @@ public class OrderEntity {
     private Long id;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private OrderStatus status;
 
     @Column(name = "user_id", nullable = false)
@@ -28,7 +29,7 @@ public class OrderEntity {
     @Column(name = "product_id")
     private Long productId;
 
-    @Column(name = "product_name", nullable = false)
+    @Column(name = "product_name", nullable = false, length = 255)
     private String productName;
 
     @Column(nullable = false)

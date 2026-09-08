@@ -5,6 +5,7 @@ import { useUser } from '../../context/UserContext';
 import BackLink from '../../components/ui/BackLink';
 import Panel from '../../components/ui/Panel';
 import DetailField from '../../components/ui/DetailField';
+import { PRODUCT_RULES, validateOrderQuantity } from '../../lib/validation';
 
 export default function StoreProductDetailPage() {
   const { id } = useParams();
@@ -23,11 +24,12 @@ export default function StoreProductDetailPage() {
 
   const handlePlaceOrder = () => {
     setError('');
-    const qty = Number(quantity);
-    if (!Number.isFinite(qty) || qty < 1) {
-      setError('Quantity must be at least 1.');
+    const quantityError = validateOrderQuantity(quantity);
+    if (quantityError) {
+      setError(quantityError);
       return;
     }
+    const qty = Number(quantity);
     setPlacing(true);
     fetch('/api/orders', {
       method: 'POST',
@@ -96,15 +98,16 @@ export default function StoreProductDetailPage() {
       <Panel title="Place Order">
         <TextField>
           <Label>Quantity</Label>
-          <Input
-            type="number"
-            min={1}
-            max={999}
-            value={quantity}
-            onChange={(e: any) => setQuantity(e.target.value)}
-            isDisabled={!product.inStock}
-            aria-describedby={error ? 'order-error' : undefined}
-          />
+            <Input
+              type="number"
+              min={PRODUCT_RULES.quantityMin}
+              max={PRODUCT_RULES.quantityMax}
+              step={1}
+              value={quantity}
+              onChange={(e: any) => setQuantity(e.target.value)}
+              isDisabled={!product.inStock}
+              aria-describedby={error ? 'order-error' : undefined}
+            />
         </TextField>
         {error ? (
           <p id="order-error" className="text-sm text-danger" role="alert">

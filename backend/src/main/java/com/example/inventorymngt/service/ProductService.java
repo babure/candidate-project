@@ -2,7 +2,9 @@ package com.example.inventorymngt.service;
 
 import com.example.inventorymngt.entity.ProductEntitiy;
 import com.example.inventorymngt.entity.ProductRepo;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -20,29 +22,52 @@ public class ProductService {
     }
 
     public ProductEntitiy getProduct(Long id) {
-        return productRepo.findById(id).orElseThrow();
+        return productRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
     }
 
     public ProductEntitiy addProduct(ProductEntitiy product) {
-        return productRepo.save(product);
+        ProductValidation.requireName(product.getName());
+        ProductValidation.requireCategory(product.getCategory());
+        ProductValidation.requireDescription(product.getDescription());
+        double price = ProductValidation.requirePrice(product.getPrice());
+
+        ProductEntitiy created = new ProductEntitiy();
+        created.setName(product.getName().trim());
+        created.setCategory(product.getCategory());
+        created.setDescription(product.getDescription());
+        created.setPrice(price);
+        created.setStock(0);
+        return productRepo.save(created);
     }
 
     public ProductEntitiy updateProduct(Long id, ProductEntitiy product) {
-        ProductEntitiy existing = productRepo.findById(id).orElseThrow();
-        existing.setName(product.getName());
+        ProductEntitiy existing = getProduct(id);
+        ProductValidation.requireName(product.getName());
+        ProductValidation.requireCategory(product.getCategory());
+        ProductValidation.requireDescription(product.getDescription());
+        double price = ProductValidation.requirePrice(product.getPrice());
+
+        existing.setName(product.getName().trim());
         existing.setDescription(product.getDescription());
         existing.setCategory(product.getCategory());
-        existing.setPrice(product.getPrice());
+        existing.setPrice(price);
         return productRepo.save(existing);
     }
 
     public void deleteProduct(Long id) {
+        if (!productRepo.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found");
+        }
         productRepo.deleteById(id);
     }
 
     public ProductEntitiy adjustStock(Long id, Integer amount) {
-        ProductEntitiy product = productRepo.findById(id).orElseThrow();
-        product.setStock(product.getStock() + amount);
+        ProductEntitiy product = getProduct(id);
+        int delta = ProductValidation.requireStockAdjustAmount(amount);
+        int current = product.getStock() == null ? 0 : product.getStock();
+        int next = ProductValidation.requireNonNegativeStock(current + delta);
+        product.setStock(next);
         return productRepo.save(product);
     }
 }

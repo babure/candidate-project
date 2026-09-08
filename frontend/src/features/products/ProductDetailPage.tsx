@@ -4,6 +4,13 @@ import { useParams } from 'react-router-dom';
 import BackLink from '../../components/ui/BackLink';
 import Panel from '../../components/ui/Panel';
 import DetailField from '../../components/ui/DetailField';
+import {
+  PRODUCT_CATEGORIES,
+  PRODUCT_RULES,
+  roundMoney,
+  validateProductInput,
+  validateStockAdjust,
+} from '../../lib/validation';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -12,6 +19,7 @@ export default function ProductDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [stockAmount, setStockAmount] = useState('');
   const [stockError, setStockError] = useState('');
+  const [editError, setEditError] = useState('');
 
   useEffect(() => {
     fetch(`/api/products/${id}`)
@@ -26,38 +34,89 @@ export default function ProductDetailPage() {
       category: product.category || '',
       price: product.price,
     });
+    setEditError('');
     setIsEditing(true);
   };
 
   const handleCancelEdit = () => {
     setEditData(null);
+    setEditError('');
     setIsEditing(false);
   };
 
   const handleUpdate = () => {
+    const validationError = validateProductInput({
+      name: editData.name,
+      category: editData.category,
+      description: editData.description,
+      price: editData.price,
+    });
+    if (validationError) {
+      setEditError(validationError);
+      return;
+    }
+
+    setEditError('');
     fetch(`/api/products/${product.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...product, ...editData }),
-    }).then(() => {
-      window.location.reload();
-    });
+      body: JSON.stringify({
+        name: String(editData.name).trim(),
+        description: editData.description,
+        category: editData.category,
+        price: roundMoney(Number(editData.price)),
+      }),
+    })
+      .then(async (r) => {
+        if (!r.ok) {
+          const text = await r.text();
+          let message = 'Failed to update product';
+          try {
+            message = JSON.parse(text).message || message;
+          } catch {
+            if (text) message = text;
+          }
+          throw new Error(message);
+        }
+        return r.json();
+      })
+      .then((data) => {
+        setProduct(data);
+        setIsEditing(false);
+        setEditData(null);
+      })
+      .catch((e) => setEditError(e.message || 'Failed to update product'));
   };
 
   const handleStockAdjust = () => {
-    setStockError('');
-    if (!stockAmount.trim()) {
-      setStockError('Enter an amount to adjust stock.');
+    const validationError = validateStockAdjust(product.stock ?? 0, stockAmount);
+    if (validationError) {
+      setStockError(validationError);
       return;
     }
-    fetch(`/api/products/${product.id}/stock?amount=${stockAmount}`, {
+
+    setStockError('');
+    fetch(`/api/products/${product.id}/stock?amount=${Number(stockAmount)}`, {
       method: 'PATCH',
     })
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) {
+          const text = await r.text();
+          let message = 'Failed to adjust stock';
+          try {
+            message = JSON.parse(text).message || message;
+          } catch {
+            if (text) message = text;
+          }
+          throw new Error(message);
+        }
+        return r.json();
+      })
       .then((data) => {
         setProduct(data);
         setStockAmount('');
-      });
+      })
+      .catch((e) => setStockError(e.message || 'Failed to adjust stock'));
   };
 
   if (!product) {
@@ -94,20 +153,39 @@ export default function ProductDetailPage() {
               <Label>Name</Label>
               <Input
                 value={editData.name}
+                maxLength={PRODUCT_RULES.nameMax}
                 onChange={(e: any) => setEditData({ ...editData, name: e.target.value })}
               />
             </TextField>
-            <TextField>
-              <Label>Category</Label>
-              <Input
+            <div>
+              <label htmlFor="edit-product-category" className="mb-1 block text-sm font-medium">
+                Category <span className="text-danger">*</span>
+              </label>
+              <select
+                id="edit-product-category"
+                required
                 value={editData.category}
-                onChange={(e: any) => setEditData({ ...editData, category: e.target.value })}
-              />
-            </TextField>
+                onChange={(e) => setEditData({ ...editData, category: e.target.value })}
+                className="w-full rounded-lg border border-default-200 bg-white px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <option value="">Select a category</option>
+                {!PRODUCT_CATEGORIES.includes(editData.category) && editData.category ? (
+                  <option value={editData.category}>
+                    {editData.category} (invalid — choose a valid category)
+                  </option>
+                ) : null}
+                {PRODUCT_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
             <TextField>
               <Label>Description</Label>
               <Input
                 value={editData.description}
+                maxLength={PRODUCT_RULES.descriptionMax}
                 onChange={(e: any) => setEditData({ ...editData, description: e.target.value })}
               />
             </TextField>
@@ -115,10 +193,18 @@ export default function ProductDetailPage() {
               <Label>Price</Label>
               <Input
                 type="number"
+                min={PRODUCT_RULES.priceMin}
+                max={PRODUCT_RULES.priceMax}
+                step="0.01"
                 value={String(editData.price)}
-                onChange={(e: any) => setEditData({ ...editData, price: Number(e.target.value) })}
+                onChange={(e: any) => setEditData({ ...editData, price: e.target.value })}
               />
             </TextField>
+            {editError ? (
+              <p className="text-sm text-danger" role="alert">
+                {editError}
+              </p>
+            ) : null}
             <div className="flex gap-2">
               <Button variant="primary" onPress={handleUpdate}>
                 Save Changes

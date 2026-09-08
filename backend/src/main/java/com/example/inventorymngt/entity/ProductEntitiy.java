@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,10 +16,19 @@ public class ProductEntitiy {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 255)
     private String name;
+
+    @Column(length = 2000)
     private String description;
+
+    @Column(nullable = false, length = 50)
     private String category;
+
+    @Column(nullable = false)
     private Double price;
+
+    @Column(nullable = false)
     private Integer stock;
 
     @Column(name = "created_at")
@@ -30,6 +40,14 @@ public class ProductEntitiy {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        if (this.stock == null) {
+            this.stock = 0;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     public Long getId() {
