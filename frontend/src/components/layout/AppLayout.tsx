@@ -4,6 +4,8 @@ import TopBar from './TopBar';
 import Sidebar from './Sidebar';
 import { useMdUp } from '../../hooks/useMdUp';
 
+const OMS_SIDEBAR_KEY = 'marketnode.oms.sidebarCollapsed';
+
 export default function AppLayout({
   children,
   currentUser,
@@ -16,6 +18,13 @@ export default function AppLayout({
   const navigate = useNavigate();
   const mdUp = useMdUp();
   const [navOpen, setNavOpen] = useState(false);
+  const [omsCollapsed, setOmsCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(OMS_SIDEBAR_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     if (mdUp) setNavOpen(false);
@@ -38,6 +47,15 @@ export default function AppLayout({
       document.body.style.overflow = prev;
     };
   }, [navOpen, mdUp]);
+
+  const handleOmsCollapsedChange = (collapsed: boolean) => {
+    setOmsCollapsed(collapsed);
+    try {
+      localStorage.setItem(OMS_SIDEBAR_KEY, collapsed ? '1' : '0');
+    } catch {
+      // ignore storage failures
+    }
+  };
 
   const handleNavigate = (key: string) => {
     setNavOpen(false);
@@ -67,6 +85,8 @@ export default function AppLayout({
           active={active}
           system={system}
           navOpen={navOpen}
+          collapsed={system === 'oms' ? omsCollapsed : false}
+          onCollapsedChange={system === 'oms' ? handleOmsCollapsedChange : undefined}
           onNavigate={handleNavigate}
           onExitSystem={() => {
             setNavOpen(false);
