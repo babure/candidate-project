@@ -1,18 +1,29 @@
 import { useEffect, useState } from 'react';
 import { AlertDialog, Button, Chip } from '@heroui/react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import BackLink from '../../components/ui/BackLink';
 import Panel from '../../components/ui/Panel';
 import DetailField from '../../components/ui/DetailField';
 import { DetailPanelSkeleton } from '../../components/ui/LoadingSkeletons';
 import FormActions from '../../components/ui/FormActions';
 
+type OrderDetailLocationState = {
+  from?: 'catalog' | 'orders';
+  listSearch?: string;
+};
+
 export default function OrderDetailPage() {
   const { id } = useParams();
+  const location = useLocation();
   const [order, setOrder] = useState<any>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState('');
+
+  const navState = (location.state as OrderDetailLocationState | null) ?? null;
+  const fromCatalog = navState?.from === 'catalog';
+  const backTo = fromCatalog ? '/oms/catalog' : '/oms/orders';
+  const backLabel = fromCatalog ? 'Back to catalog' : 'Back to orders';
 
   const loadOrder = () => {
     fetch(`/api/orders/${id}`)
@@ -59,7 +70,7 @@ export default function OrderDetailPage() {
 
   return (
     <div className="w-full max-w-2xl">
-      <BackLink to="/oms/orders" label="Back to orders" />
+      <BackLink to={backTo} label={backLabel} />
 
       <Panel
         title="Order Detail"
@@ -117,8 +128,7 @@ export default function OrderDetailPage() {
               </AlertDialog.Header>
               <AlertDialog.Body>
                 <p className="text-pretty text-sm text-default-600">
-                  This will set the order status to CANCELLED and restore deducted stock when the
-                  product still exists.
+                  This order will be cancelled and cannot be undone.
                 </p>
               </AlertDialog.Body>
               <AlertDialog.Footer>

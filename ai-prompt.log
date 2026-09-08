@@ -143,3 +143,38 @@ prompt: |
   Rearrange the top header, side nav, and other features based on screen size.
   Make sure no functionality breaks and the UI is consistent and usable across devices and platforms.
 ---
+timestamp: 2026-09-08T08:20:00Z
+model: Composer
+prompt: |
+  Implement pagination in the OMS for catalog and orders. Default page size is 20.
+  Pagination, sorting, and filters should remain the same even if the page is refreshed;
+  only reset when cleared, exiting the system, or the system is changed.
+  Embed them in the URL.
+---
+timestamp: 2026-09-08T08:30:00Z
+model: Composer
+prompt: |
+  Keep the catalog search filter UI the same as before.
+  Keep page size at 20.
+  Sorting, filtering, and searching are related to the frontend but should be
+  consistent and come from the backend if that is not out of scope.
+  While building these features from the backend, make sure the system stays
+  scalable and stateless.
+  Check the scope and implement if permitted.
+  For searching, add debouncing.
+---
+timestamp: 2026-09-08T08:35:00Z
+model: Composer
+prompt: |
+  When filter, search, or sort happens there is page displacement — fix it across OMS tables.
+  Product catalog search bar, filter, sort, and other options should be in one row.
+---
+timestamp: 2026-09-08T08:45:00Z
+model: Composer
+prompt: |
+  Before creating the order show a confirmation dialog with the total, item quantity,
+  and other metadata; once the user clicks confirm, navigate to the order detail page.
+  If the user reaches order details from placing an order in the catalog, show an option
+  to go back to the catalog (not the orders page). If they open order detail from the
+  orders table, show an option to go back to the orders page.
+---

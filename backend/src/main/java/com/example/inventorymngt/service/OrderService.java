@@ -1,11 +1,16 @@
 package com.example.inventorymngt.service;
 
 import com.example.inventorymngt.dto.CreateOrderRequest;
+import com.example.inventorymngt.dto.PageResponse;
 import com.example.inventorymngt.entity.OrderEntity;
 import com.example.inventorymngt.entity.OrderRepo;
 import com.example.inventorymngt.entity.OrderStatus;
 import com.example.inventorymngt.entity.ProductEntitiy;
 import com.example.inventorymngt.entity.ProductRepo;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +18,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class OrderService {
@@ -100,6 +107,32 @@ public class OrderService {
         return orderRepo.save(order);
     }
 
+    /**
+     * Stateless order listing: filter/sort/page are request parameters only (no session).
+     */
+    public PageResponse<OrderEntity> searchOrders(
+            Integer userId,
+            String sort,
+            String dir,
+            Integer page,
+            Integer pageSize
+    ) {
+        int pageNumber = Paging.normalizePage(page);
+        int size = Paging.normalizePageSize(pageSize);
+        Sort springSort = orderSort(sort, dir);
+
+        Specification<OrderEntity> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (userId != null) {
+                predicates.add(cb.equal(root.get("userId"), userId));
+            }
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
+
+        Page<OrderEntity> result = orderRepo.findAll(spec, Paging.of(pageNumber, size, springSort));
+        return new PageResponse<>(result.getContent(), pageNumber, size, result.getTotalElements());
+    }
+
     public List<OrderEntity> listOrders(Integer userId) {
         if (userId != null) {
             return orderRepo.findByUserIdOrderByCreatedAtDesc(userId);
@@ -110,5 +143,25 @@ public class OrderService {
     public OrderEntity getOrder(Long id) {
         return orderRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+    }
+
+    private static Sort orderSort(String sort, String dir) {
+        String field = sort == null || sort.isBlank() ? "date" : sort.trim().toLowerCase(Locale.ROOT);
+        Sort.Direction defaultDir = switch (field) {
+            case "name", "status" -> Sort.Direction.ASC;
+            default -> Sort.Direction.DESC;
+        };
+        Sort.Direction direction = Paging.direction(dir, defaultDir);
+        return switch (field) {
+            case "id" -> Sort.by(direction, "id");
+            case "name" -> Sort.by(direction, "productName").and(Sort.by(Sort.Direction.DESC, "id"));
+            case "status" -> Sort.by(direction, "status").and(Sort.by(Sort.Direction.DESC, "id"));
+            case "total" -> Sort.by(direction, "totalAmount").and(Sort.by(Sort.Direction.DESC, "id"));
+            case "date" -> Sort.by(direction, "createdAt").and(Sort.by(Sort.Direction.DESC, "id"));
+            default -> throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "sort must be id, name, status, total, or date"
+            );
+        };
     }
 }

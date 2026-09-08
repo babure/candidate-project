@@ -1,6 +1,7 @@
 package com.example.inventorymngt.Controllers;
 
 import com.example.inventorymngt.dto.CreateOrderRequest;
+import com.example.inventorymngt.dto.PageResponse;
 import com.example.inventorymngt.entity.OrderEntity;
 import com.example.inventorymngt.service.OrderService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,8 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -29,8 +28,14 @@ public class OrderController {
     }
 
     @GetMapping
-    public List<OrderEntity> list(@RequestParam(required = false) Integer userId) {
-        return orderService.listOrders(userId);
+    public PageResponse<OrderEntity> list(
+            @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false, defaultValue = "date") String sort,
+            @RequestParam(required = false, defaultValue = "desc") String dir,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer pageSize
+    ) {
+        return orderService.searchOrders(userId, sort, dir, page, pageSize);
     }
 
     @GetMapping("/{id}")
