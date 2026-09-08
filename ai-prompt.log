@@ -1,0 +1,10 @@
+# AI Prompt Log
+# Append a numbered entry for every AI interaction in the order they occurred.
+# See TASKS.md for the required format.
+
+---
+timestamp: 2026-09-08T04:59:00Z
+model: Composer
+prompt: |
+  Before making any code change or suggesting what to do, please go through the entire project, refer to PRODUCT.md and TASKS.md for what is built and what to create, and once you have the idea please prompt what you understood by that.
+---
