@@ -53,10 +53,11 @@ export default function StoreProductDetailPage() {
 
   const parsedQty = Number(quantity);
   const unitPrice = product?.price ?? 0;
+  const qtyValid = Number.isFinite(parsedQty) && parsedQty >= 1;
   const lineTotal = useMemo(() => {
-    if (!Number.isFinite(parsedQty) || parsedQty < 1) return null;
+    if (!qtyValid) return null;
     return roundMoney(unitPrice * parsedQty);
-  }, [parsedQty, unitPrice]);
+  }, [parsedQty, unitPrice, qtyValid]);
 
   const openConfirm = () => {
     setError('');
@@ -115,7 +116,7 @@ export default function StoreProductDetailPage() {
 
   if (loadError && !product) {
     return (
-      <div className="w-full max-w-2xl">
+      <div className="w-full max-w-5xl">
         <BackLink to={backTo} label="Back to catalog" />
         <EmptyState
           title="Couldn't load product"
@@ -135,57 +136,80 @@ export default function StoreProductDetailPage() {
   }
 
   return (
-    <div className="w-full max-w-2xl">
+    <div className="w-full max-w-5xl">
       <BackLink to={backTo} label="Back to catalog" />
 
-      <Panel
-        className="mb-4"
-        title="Product Detail"
-        actions={
-          <Chip size="sm" color={product.inStock ? 'success' : 'danger'}>
-            <Chip.Label>{product.inStock ? 'In stock' : 'Out of stock'}</Chip.Label>
-          </Chip>
-        }
-      >
-        <dl className="grid gap-4">
-          <DetailField label="Name">{product.name}</DetailField>
-          <DetailField label="Category">{product.category || '—'}</DetailField>
-          <DetailField label="Description">{product.description || '—'}</DetailField>
-          <DetailField label="Price" tabular>
-            ${formatMoney(product.price)}
-          </DetailField>
-        </dl>
-      </Panel>
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)]">
+        <Panel
+          title="Product Detail"
+          actions={
+            <Chip size="sm" color={product.inStock ? 'success' : 'danger'}>
+              <Chip.Label>{product.inStock ? 'In stock' : 'Out of stock'}</Chip.Label>
+            </Chip>
+          }
+        >
+          <dl className="grid gap-4">
+            <DetailField label="Name">{product.name}</DetailField>
+            <DetailField label="Category">{product.category || '—'}</DetailField>
+            <DetailField label="Description">{product.description || '—'}</DetailField>
+            <DetailField label="Price" tabular>
+              ${formatMoney(product.price)}
+            </DetailField>
+          </dl>
+        </Panel>
 
-      <Panel title="Place Order">
-        <TextField>
-          <Label>Quantity</Label>
-          <Input
-            type="number"
-            min={PRODUCT_RULES.quantityMin}
-            max={PRODUCT_RULES.quantityMax}
-            step={1}
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            isDisabled={!product.inStock}
-            aria-describedby={error ? 'order-error' : undefined}
-          />
-        </TextField>
-        {error ? (
-          <p id="order-error" className="text-sm text-danger" role="alert">
-            {error}
-          </p>
-        ) : null}
-        <FormActions>
-          <Button
-            variant="primary"
-            onPress={openConfirm}
-            isDisabled={!product.inStock || placing}
+        <Panel title="Place Order" className="lg:sticky lg:top-4">
+          <TextField>
+            <Label>Quantity</Label>
+            <Input
+              type="number"
+              min={PRODUCT_RULES.quantityMin}
+              max={PRODUCT_RULES.quantityMax}
+              step={1}
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              isDisabled={!product.inStock}
+              aria-describedby={error ? 'order-error' : 'order-summary'}
+            />
+          </TextField>
+
+          <dl
+            id="order-summary"
+            className="grid gap-2 rounded-lg border border-default-200 bg-default-50 px-3 py-3 text-sm"
           >
-            Place Order
-          </Button>
-        </FormActions>
-      </Panel>
+            <div className="flex justify-between gap-3">
+              <dt className="text-default-500">Unit price</dt>
+              <dd className="tabular-nums text-foreground">${formatMoney(unitPrice)}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-default-500">Quantity</dt>
+              <dd className="tabular-nums text-foreground">{qtyValid ? parsedQty : '—'}</dd>
+            </div>
+            <div className="flex justify-between gap-3 border-t border-default-200 pt-2">
+              <dt className="font-medium text-foreground">Total</dt>
+              <dd className="tabular-nums font-semibold text-foreground">
+                {lineTotal != null ? `$${formatMoney(lineTotal)}` : '—'}
+              </dd>
+            </div>
+          </dl>
+
+          {error ? (
+            <p id="order-error" className="text-sm text-danger" role="alert">
+              {error}
+            </p>
+          ) : null}
+
+          <FormActions>
+            <Button
+              variant="primary"
+              onPress={openConfirm}
+              isDisabled={!product.inStock || placing}
+            >
+              Place Order
+            </Button>
+          </FormActions>
+        </Panel>
+      </div>
 
       <AlertDialog>
         <AlertDialog.Backdrop
@@ -198,36 +222,19 @@ export default function StoreProductDetailPage() {
             <AlertDialog.Dialog>
               <AlertDialog.CloseTrigger />
               <AlertDialog.Header>
-                <AlertDialog.Heading>Confirm your order</AlertDialog.Heading>
+                <AlertDialog.Heading>Confirm your order?</AlertDialog.Heading>
               </AlertDialog.Header>
               <AlertDialog.Body>
-                <p className="mb-4 text-pretty text-sm text-default-600">
-                  Please confirm the details below before placing your order.
+                <p className="text-pretty text-sm text-default-600">
+                  Place this order for <span className="font-medium text-foreground">{product.name}</span>
+                  {lineTotal != null ? (
+                    <>
+                      {' '}
+                      totaling <span className="font-medium tabular-nums text-foreground">${formatMoney(lineTotal)}</span>
+                    </>
+                  ) : null}
+                  ?
                 </p>
-                <dl className="grid gap-3 rounded-lg border border-default-200 bg-default-50 px-4 py-3 text-sm">
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-default-500">Product</dt>
-                    <dd className="font-medium text-foreground">{product.name}</dd>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-default-500">Category</dt>
-                    <dd className="text-foreground">{product.category || '—'}</dd>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-default-500">Quantity</dt>
-                    <dd className="tabular-nums font-medium text-foreground">{parsedQty}</dd>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-default-500">Unit price</dt>
-                    <dd className="tabular-nums text-foreground">${formatMoney(unitPrice)}</dd>
-                  </div>
-                  <div className="flex justify-between gap-4 border-t border-default-200 pt-3">
-                    <dt className="font-medium text-foreground">Total</dt>
-                    <dd className="tabular-nums font-semibold text-foreground">
-                      {lineTotal != null ? `$${formatMoney(lineTotal)}` : '—'}
-                    </dd>
-                  </div>
-                </dl>
               </AlertDialog.Body>
               <AlertDialog.Footer>
                 <FormActions>

@@ -102,6 +102,7 @@ Switch users in the OMS/IMS header dropdown to see each person’s order history
 6. **Stock locking** — Place / cancel / adjust use pessimistic locks; delete is blocked while `CREATED` orders reference a product.
 7. **Dummy users, not auth** — Header user switcher only; auth remains out of scope.
 8. **Collapsible OMS sidebar** — Desktop OMS nav can collapse to an icon rail (preference stored in `localStorage`); mobile keeps the drawer menu.
+9. **Faster Docker rebuilds** — Root `.dockerignore` shrinks the build context; the Dockerfile caches `npm ci` / Maven deps (BuildKit cache mounts) and downloads Maven dependencies in a layer before copying Java sources, so code-only changes do not re-download the world. First build is still slower (images + deps); later rebuilds are much quicker.
 
 ---
 
