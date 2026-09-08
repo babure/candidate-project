@@ -15,13 +15,13 @@ export default function SystemSelectPage() {
         onUserChange={setCurrentUser}
       />
 
-      <main className="flex flex-1 items-center justify-center p-6">
+      <main className="flex flex-1 items-center justify-center p-4 sm:p-6">
         <div className="w-full max-w-2xl">
-          <div className="mb-8 text-center">
-            <h1 className="text-balance text-2xl font-semibold text-foreground">
+          <div className="mb-6 text-center sm:mb-8">
+            <h1 className="text-balance text-xl font-semibold text-foreground sm:text-2xl">
               Select a system
             </h1>
-            <p className="mt-2 text-pretty text-default-500">
+            <p className="mt-2 text-pretty text-sm text-default-500 sm:text-base">
               Choose Inventory Management System or Order Management System to continue. No
               sign-in is required.
             </p>
@@ -37,7 +37,11 @@ export default function SystemSelectPage() {
                 <p className="text-pretty text-sm text-default-500">
                   Staff tools for managing the product catalog, pricing, and stock levels.
                 </p>
-                <Button variant="primary" onPress={() => navigate('/ims/products')}>
+                <Button
+                  variant="primary"
+                  className="w-full sm:w-auto"
+                  onPress={() => navigate('/ims/products')}
+                >
                   Enter IMS
                 </Button>
               </Card.Content>
@@ -52,7 +56,11 @@ export default function SystemSelectPage() {
                 <p className="text-pretty text-sm text-default-500">
                   Customer storefront for browsing products and placing orders.
                 </p>
-                <Button variant="primary" onPress={() => navigate('/oms/catalog')}>
+                <Button
+                  variant="primary"
+                  className="w-full sm:w-auto"
+                  onPress={() => navigate('/oms/catalog')}
+                >
                   Enter OMS
                 </Button>
               </Card.Content>

@@ -22,11 +22,26 @@ function SwitchIcon() {
   );
 }
 
+function MenuIcon({ open }: { open: boolean }) {
+  return open ? (
+    <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+      <path d="M18 6 6 18" strokeLinecap="round" />
+      <path d="m6 6 12 12" strokeLinecap="round" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+      <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 type TopBarProps = {
   currentUser: any;
   users: any[];
   onUserChange: (user: any) => void;
   system?: 'ims' | 'oms';
+  navOpen?: boolean;
+  onNavToggle?: () => void;
 };
 
 export default function TopBar({
@@ -34,52 +49,77 @@ export default function TopBar({
   users,
   onUserChange,
   system,
+  navOpen = false,
+  onNavToggle,
 }: TopBarProps) {
   const navigate = useNavigate();
   const inApp = system === 'ims' || system === 'oms';
   const systemFullName =
     system === 'oms' ? 'Order Management System' : 'Inventory Management System';
+  const systemShort = system === 'oms' ? 'OMS' : 'IMS';
   const switchTargetLabel = system === 'oms' ? 'IMS' : 'OMS';
 
   return (
     <header
-      className="flex h-20 shrink-0 items-center justify-between border-b border-white/10 px-6"
+      className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-white/10 px-3 sm:h-16 sm:px-4 md:h-20 md:px-6"
       style={{ backgroundColor: '#080809' }}
     >
-      <div className="flex min-w-0 items-center gap-3">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        {inApp ? (
+          <button
+            type="button"
+            className="inline-flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-md text-[#f5f5f3] outline-none hover:bg-white/10 focus-visible:ring-1 focus-visible:ring-white/40 md:hidden"
+            aria-label={navOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={navOpen}
+            aria-controls="app-sidebar"
+            onClick={onNavToggle}
+          >
+            <MenuIcon open={navOpen} />
+          </button>
+        ) : null}
+
         <button
           type="button"
           onClick={() => navigate('/')}
-          className="flex cursor-pointer items-center rounded-md outline-none focus-visible:ring-1 focus-visible:ring-white/40"
+          className="flex shrink-0 cursor-pointer items-center rounded-md outline-none focus-visible:ring-1 focus-visible:ring-white/40"
           aria-label="MarketNode home — select system"
         >
           <img
             src={marketnodeLogo}
             alt="MarketNode"
-            className="h-8 w-auto"
+            className="h-7 w-auto sm:h-8"
           />
         </button>
+
         {inApp ? (
-          <span
-            className="truncate text-sm font-medium text-[#f5f5f3]"
-            aria-label={`Current system ${systemFullName}`}
-          >
-            {systemFullName}
-          </span>
+          <>
+            <span
+              className="truncate text-xs font-medium text-[#f5f5f3] sm:text-sm md:hidden"
+              aria-label={`Current system ${systemFullName}`}
+            >
+              {systemShort}
+            </span>
+            <span
+              className="hidden truncate text-sm font-medium text-[#f5f5f3] md:inline"
+              aria-label={`Current system ${systemFullName}`}
+            >
+              {systemFullName}
+            </span>
+          </>
         ) : null}
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
         {inApp ? (
           <>
             <button
               type="button"
               onClick={() => navigate(system === 'oms' ? '/ims/products' : '/oms/catalog')}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3.5 py-2 text-sm font-medium text-[#f5f5f3] outline-none transition-colors hover:border-white/50 hover:bg-white/15 focus-visible:ring-1 focus-visible:ring-white/40"
+              className="inline-flex size-10 cursor-pointer items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 text-sm font-medium text-[#f5f5f3] outline-none transition-colors hover:border-white/50 hover:bg-white/15 focus-visible:ring-1 focus-visible:ring-white/40 sm:h-auto sm:w-auto sm:px-3.5 sm:py-2"
               aria-label={`Switch to ${switchTargetLabel}`}
             >
               <SwitchIcon />
-              Switch to {switchTargetLabel}
+              <span className="hidden sm:inline">Switch to {switchTargetLabel}</span>
             </button>
             <span className="hidden h-6 w-px bg-white/25 sm:block" aria-hidden="true" />
             <Dropdown>
@@ -89,7 +129,7 @@ export default function TopBar({
                   className="flex cursor-pointer items-center gap-2 rounded-md outline-none focus-visible:ring-1 focus-visible:ring-white/40"
                   aria-label={`Current user ${currentUser.name}. Open user menu`}
                 >
-                  <span className="hidden text-sm text-[#f5f5f3]/70 sm:inline">
+                  <span className="hidden text-sm text-[#f5f5f3]/70 lg:inline">
                     {currentUser.email}
                   </span>
                   <Avatar size="sm">

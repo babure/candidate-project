@@ -136,3 +136,10 @@ prompt: |
   When we select something, the highlight on inputs and dropdowns should have reduced
   border width — follow this throughout the entire application.
 ---
+timestamp: 2026-09-08T08:15:00Z
+model: Composer
+prompt: |
+  Create a mobile-first design. All pages should be mobile first.
+  Rearrange the top header, side nav, and other features based on screen size.
+  Make sure no functionality breaks and the UI is consistent and usable across devices and platforms.
+---

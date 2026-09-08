@@ -72,7 +72,7 @@ export default function StoreProductDetailPage() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full max-w-2xl">
       <BackLink to="/oms/catalog" label="Back to catalog" />
 
       <Panel

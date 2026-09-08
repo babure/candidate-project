@@ -165,14 +165,15 @@ export default function StoreProductListPage() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search products…"
           aria-label="Search products"
-          className={`min-w-[12rem] flex-1 ${controlClass}`}
+          className={`w-full min-w-0 basis-[calc(100%-2.75rem)] flex-1 sm:min-w-[12rem] sm:basis-auto ${controlClass}`}
         />
+        <div className="ml-auto sm:order-last">{viewToggle}</div>
         <select
           id="catalog-category"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           aria-label="Filter by category"
-          className={controlClass}
+          className={`w-full sm:w-auto ${controlClass}`}
         >
           <option value="all">All categories</option>
           {categories.map((c) => (
@@ -186,7 +187,7 @@ export default function StoreProductListPage() {
           value={availability}
           onChange={(e) => setAvailability(e.target.value as AvailabilityFilter)}
           aria-label="Filter by availability"
-          className={controlClass}
+          className={`w-full sm:w-auto ${controlClass}`}
         >
           <option value="all">All stock</option>
           <option value="in">In stock</option>
@@ -201,7 +202,7 @@ export default function StoreProductListPage() {
           onChange={(e) => setPriceMin(e.target.value)}
           placeholder="Min $"
           aria-label="Minimum price"
-          className={`w-24 ${controlClass}`}
+          className={`w-[calc(50%-0.25rem)] sm:w-24 ${controlClass}`}
         />
         <input
           id="catalog-price-max"
@@ -212,14 +213,13 @@ export default function StoreProductListPage() {
           onChange={(e) => setPriceMax(e.target.value)}
           placeholder="Max $"
           aria-label="Maximum price"
-          className={`w-24 ${controlClass}`}
+          className={`w-[calc(50%-0.25rem)] sm:w-24 ${controlClass}`}
         />
         {hasActiveFilters ? (
           <Button size="sm" variant="ghost" onPress={clearFilters}>
             Clear
           </Button>
         ) : null}
-        <div className="ml-auto">{viewToggle}</div>
       </div>
 
       {view === 'cards' && filtered.length > 0 ? (

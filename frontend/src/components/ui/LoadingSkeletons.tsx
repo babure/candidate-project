@@ -51,7 +51,7 @@ export function CardGridSkeleton({ count = 6 }: { count?: number }) {
 
 export function DetailPanelSkeleton() {
   return (
-    <div className="max-w-2xl" role="status" aria-label="Loading">
+    <div className="w-full max-w-2xl" role="status" aria-label="Loading">
       <Skeleton className="mb-4 h-8 w-40 rounded" />
       <div className="rounded-lg border border-default-200 bg-white">
         <div className="border-b border-default-200 px-5 py-3.5">
