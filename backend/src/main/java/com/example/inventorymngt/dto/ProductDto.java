@@ -2,32 +2,32 @@ package com.example.inventorymngt.dto;
 
 import java.math.BigDecimal;
 
-public class StoreProductDto {
+public class ProductDto {
 
     private Long id;
     private String name;
     private String description;
     private String category;
     private BigDecimal price;
-    private boolean inStock;
+    private Integer stock;
 
-    public StoreProductDto() {
+    public ProductDto() {
     }
 
-    public StoreProductDto(
+    public ProductDto(
             Long id,
             String name,
             String description,
             String category,
             BigDecimal price,
-            boolean inStock
+            Integer stock
     ) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.category = category;
         this.price = price;
-        this.inStock = inStock;
+        this.stock = stock;
     }
 
     public Long getId() {
@@ -70,11 +70,11 @@ public class StoreProductDto {
         this.price = price;
     }
 
-    public boolean isInStock() {
-        return inStock;
+    public Integer getStock() {
+        return stock;
     }
 
-    public void setInStock(boolean inStock) {
-        this.inStock = inStock;
+    public void setStock(Integer stock) {
+        this.stock = stock;
     }
 }

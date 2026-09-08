@@ -5,29 +5,51 @@ import { useUser } from '../../context/UserContext';
 import BackLink from '../../components/ui/BackLink';
 import Panel from '../../components/ui/Panel';
 import DetailField from '../../components/ui/DetailField';
+import EmptyState from '../../components/ui/EmptyState';
 import { PRODUCT_RULES, roundMoney, validateOrderQuantity } from '../../lib/validation';
 import { DetailPanelSkeleton } from '../../components/ui/LoadingSkeletons';
 import FormActions from '../../components/ui/FormActions';
+import { fetchJson, readErrorMessage } from '../../lib/fetchJson';
+import { formatMoney, type Order, type StoreProduct } from '../../types/api';
 
 export default function StoreProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser } = useUser();
-  const [product, setProduct] = useState<any>(null);
+  const [product, setProduct] = useState<StoreProduct | null>(null);
   const [quantity, setQuantity] = useState('1');
   const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [placing, setPlacing] = useState(false);
 
   const catalogSearch = (location.state as { listSearch?: string } | null)?.listSearch;
+  const backTo = `/oms/catalog${catalogSearch ? `?${catalogSearch}` : ''}`;
 
   useEffect(() => {
+    if (!id) return;
+    const controller = new AbortController();
+    setIsLoading(true);
+    setLoadError('');
     setProduct(null);
-    fetch(`/api/store/products/${id}`)
-      .then((r) => r.json())
-      .then((data) => setProduct(data));
-  }, [id]);
+
+    fetchJson<StoreProduct>(`/api/store/products/${id}`, { signal: controller.signal })
+      .then((data) => {
+        if (!controller.signal.aborted) setProduct(data);
+      })
+      .catch((e) => {
+        if (e?.name === 'AbortError') return;
+        setLoadError(e.message || 'Failed to load product');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [id, reloadKey]);
 
   const parsedQty = Number(quantity);
   const unitPrice = product?.price ?? 0;
@@ -47,6 +69,7 @@ export default function StoreProductDetailPage() {
   };
 
   const handleConfirmPlaceOrder = () => {
+    if (!product) return;
     setError('');
     const quantityError = validateOrderQuantity(quantity);
     if (quantityError) {
@@ -66,18 +89,8 @@ export default function StoreProductDetailPage() {
       }),
     })
       .then(async (r) => {
-        if (!r.ok) {
-          const text = await r.text();
-          let message = 'Failed to place order';
-          try {
-            const body = JSON.parse(text);
-            message = body.message || message;
-          } catch {
-            if (text) message = text;
-          }
-          throw new Error(message);
-        }
-        return r.json();
+        if (!r.ok) throw new Error(await readErrorMessage(r, 'Failed to place order'));
+        return r.json() as Promise<Order>;
       })
       .then((order) => {
         setPlacing(false);
@@ -96,13 +109,34 @@ export default function StoreProductDetailPage() {
       });
   };
 
+  if (isLoading && !product) {
+    return <DetailPanelSkeleton />;
+  }
+
+  if (loadError && !product) {
+    return (
+      <div className="w-full max-w-2xl">
+        <BackLink to={backTo} label="Back to catalog" />
+        <EmptyState
+          title="Couldn't load product"
+          description={loadError}
+          action={
+            <Button variant="primary" onPress={() => setReloadKey((k) => k + 1)}>
+              Try again
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
   if (!product) {
     return <DetailPanelSkeleton />;
   }
 
   return (
     <div className="w-full max-w-2xl">
-      <BackLink to="/oms/catalog" label="Back to catalog" />
+      <BackLink to={backTo} label="Back to catalog" />
 
       <Panel
         className="mb-4"
@@ -118,7 +152,7 @@ export default function StoreProductDetailPage() {
           <DetailField label="Category">{product.category || '—'}</DetailField>
           <DetailField label="Description">{product.description || '—'}</DetailField>
           <DetailField label="Price" tabular>
-            ${product.price?.toFixed(2)}
+            ${formatMoney(product.price)}
           </DetailField>
         </dl>
       </Panel>
@@ -132,7 +166,7 @@ export default function StoreProductDetailPage() {
             max={PRODUCT_RULES.quantityMax}
             step={1}
             value={quantity}
-            onChange={(e: any) => setQuantity(e.target.value)}
+            onChange={(e) => setQuantity(e.target.value)}
             isDisabled={!product.inStock}
             aria-describedby={error ? 'order-error' : undefined}
           />
@@ -185,12 +219,12 @@ export default function StoreProductDetailPage() {
                   </div>
                   <div className="flex justify-between gap-4">
                     <dt className="text-default-500">Unit price</dt>
-                    <dd className="tabular-nums text-foreground">${unitPrice.toFixed(2)}</dd>
+                    <dd className="tabular-nums text-foreground">${formatMoney(unitPrice)}</dd>
                   </div>
                   <div className="flex justify-between gap-4 border-t border-default-200 pt-3">
                     <dt className="font-medium text-foreground">Total</dt>
                     <dd className="tabular-nums font-semibold text-foreground">
-                      {lineTotal != null ? `$${lineTotal.toFixed(2)}` : '—'}
+                      {lineTotal != null ? `$${formatMoney(lineTotal)}` : '—'}
                     </dd>
                   </div>
                 </dl>

@@ -18,6 +18,7 @@ import {
 } from '../../components/ui/PaginationBar';
 import { parsePositiveInt, useUrlQueryState } from '../../hooks/useUrlQueryState';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { formatMoney } from '../../types/api';
 
 type SortField = 'name' | 'price';
 type AvailabilityFilter = 'all' | 'in' | 'out';
@@ -437,7 +438,7 @@ export default function StoreProductListPage() {
                 <p className="line-clamp-2 text-pretty text-sm text-default-500">
                   {p.description || 'No description'}
                 </p>
-                <p className="mt-3 font-medium tabular-nums">${p.price?.toFixed(2)}</p>
+                <p className="mt-3 font-medium tabular-nums">${formatMoney(p.price)}</p>
               </button>
             ))}
           </div>
@@ -486,7 +487,7 @@ export default function StoreProductListPage() {
                           <Table.Cell className="tabular-nums text-default-500">{p.id}</Table.Cell>
                           <Table.Cell className="font-medium">{p.name}</Table.Cell>
                           <Table.Cell>{p.category || '—'}</Table.Cell>
-                          <Table.Cell className="tabular-nums">${p.price?.toFixed(2)}</Table.Cell>
+                          <Table.Cell className="tabular-nums">${formatMoney(p.price)}</Table.Cell>
                           <Table.Cell>
                             <Chip size="sm" color={p.inStock ? 'success' : 'danger'}>
                               <Chip.Label>{p.inStock ? 'In stock' : 'Out of stock'}</Chip.Label>

@@ -17,6 +17,7 @@ import {
   DEFAULT_PAGE_SIZE,
 } from '../../components/ui/PaginationBar';
 import { parsePositiveInt, useUrlQueryState } from '../../hooks/useUrlQueryState';
+import { formatMoney } from '../../types/api';
 
 type SortField = 'id' | 'name' | 'status' | 'total' | 'date';
 
@@ -255,7 +256,7 @@ export default function OrderHistoryPage() {
                               <Chip.Label>{o.status}</Chip.Label>
                             </Chip>
                           </Table.Cell>
-                          <Table.Cell className="tabular-nums">${o.totalAmount?.toFixed(2)}</Table.Cell>
+                          <Table.Cell className="tabular-nums">${formatMoney(o.totalAmount)}</Table.Cell>
                           <Table.Cell className="text-default-500">
                             {o.createdAt ? new Date(o.createdAt).toLocaleString() : '—'}
                           </Table.Cell>

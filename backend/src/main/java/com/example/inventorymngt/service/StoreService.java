@@ -2,7 +2,7 @@ package com.example.inventorymngt.service;
 
 import com.example.inventorymngt.dto.PageResponse;
 import com.example.inventorymngt.dto.StoreProductDto;
-import com.example.inventorymngt.entity.ProductEntitiy;
+import com.example.inventorymngt.entity.ProductEntity;
 import com.example.inventorymngt.entity.ProductRepo;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -45,15 +46,15 @@ public class StoreService {
         int size = Paging.normalizePageSize(pageSize);
         Sort springSort = productSort(sort, dir);
 
-        Specification<ProductEntitiy> spec = buildProductSpec(q, category, availability, minPrice, maxPrice);
-        Page<ProductEntitiy> result = productRepo.findAll(spec, Paging.of(pageNumber, size, springSort));
+        Specification<ProductEntity> spec = buildProductSpec(q, category, availability, minPrice, maxPrice);
+        Page<ProductEntity> result = productRepo.findAll(spec, Paging.of(pageNumber, size, springSort));
 
         List<StoreProductDto> items = result.getContent().stream().map(this::toDto).toList();
         return new PageResponse<>(items, pageNumber, size, result.getTotalElements());
     }
 
     public StoreProductDto getProduct(Long id) {
-        ProductEntitiy product = productRepo.findById(id)
+        ProductEntity product = productRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
         return toDto(product);
     }
@@ -67,7 +68,7 @@ public class StoreService {
                 .toList();
     }
 
-    private static Specification<ProductEntitiy> buildProductSpec(
+    private static Specification<ProductEntity> buildProductSpec(
             String q,
             String category,
             String availability,
@@ -78,11 +79,12 @@ public class StoreService {
             List<Predicate> predicates = new ArrayList<>();
 
             if (q != null && !q.isBlank()) {
-                String like = "%" + q.trim().toLowerCase(Locale.ROOT) + "%";
+                String escaped = escapeLike(q.trim().toLowerCase(Locale.ROOT));
+                String like = "%" + escaped + "%";
                 predicates.add(cb.or(
-                        cb.like(cb.lower(root.get("name")), like),
-                        cb.like(cb.lower(cb.coalesce(root.get("description"), cb.literal(""))), like),
-                        cb.like(cb.lower(cb.coalesce(root.get("category"), cb.literal(""))), like)
+                        cb.like(cb.lower(root.get("name")), like, '\\'),
+                        cb.like(cb.lower(cb.coalesce(root.get("description"), cb.literal(""))), like, '\\'),
+                        cb.like(cb.lower(cb.coalesce(root.get("category"), cb.literal(""))), like, '\\')
                 ));
             }
 
@@ -94,13 +96,13 @@ public class StoreService {
                 if (minPrice < 0) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "minPrice must be >= 0");
                 }
-                predicates.add(cb.greaterThanOrEqualTo(root.get("price"), minPrice));
+                predicates.add(cb.greaterThanOrEqualTo(root.get("price"), BigDecimal.valueOf(minPrice)));
             }
             if (maxPrice != null) {
                 if (maxPrice < 0) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "maxPrice must be >= 0");
                 }
-                predicates.add(cb.lessThanOrEqualTo(root.get("price"), maxPrice));
+                predicates.add(cb.lessThanOrEqualTo(root.get("price"), BigDecimal.valueOf(maxPrice)));
             }
             if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "minPrice must be <= maxPrice");
@@ -123,6 +125,13 @@ public class StoreService {
         };
     }
 
+    private static String escapeLike(String value) {
+        return value
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
+    }
+
     private static Sort productSort(String sort, String dir) {
         String field = sort == null || sort.isBlank() ? "name" : sort.trim().toLowerCase(Locale.ROOT);
         Sort.Direction direction = Paging.direction(dir, Sort.Direction.ASC);
@@ -133,7 +142,7 @@ public class StoreService {
         };
     }
 
-    private StoreProductDto toDto(ProductEntitiy product) {
+    private StoreProductDto toDto(ProductEntity product) {
         int stock = product.getStock() == null ? 0 : product.getStock();
         return new StoreProductDto(
                 product.getId(),

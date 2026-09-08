@@ -5,7 +5,7 @@ import com.example.inventorymngt.dto.PageResponse;
 import com.example.inventorymngt.entity.OrderEntity;
 import com.example.inventorymngt.entity.OrderRepo;
 import com.example.inventorymngt.entity.OrderStatus;
-import com.example.inventorymngt.entity.ProductEntitiy;
+import com.example.inventorymngt.entity.ProductEntity;
 import com.example.inventorymngt.entity.ProductRepo;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
@@ -51,7 +51,7 @@ public class OrderService {
             );
         }
 
-        ProductEntitiy product = productRepo.findById(request.getProductId())
+        ProductEntity product = productRepo.findByIdForUpdate(request.getProductId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
 
         int stock = product.getStock() == null ? 0 : product.getStock();
@@ -65,7 +65,7 @@ public class OrderService {
         product.setStock(stock - request.getQuantity());
         productRepo.save(product);
 
-        BigDecimal unitPrice = BigDecimal.valueOf(product.getPrice() == null ? 0.0 : product.getPrice())
+        BigDecimal unitPrice = (product.getPrice() == null ? BigDecimal.ZERO : product.getPrice())
                 .setScale(2, RoundingMode.HALF_UP);
         BigDecimal totalAmount = unitPrice
                 .multiply(BigDecimal.valueOf(request.getQuantity()))
@@ -77,15 +77,17 @@ public class OrderService {
         order.setProductId(product.getId());
         order.setProductName(product.getName());
         order.setQuantity(request.getQuantity());
-        order.setUnitPrice(unitPrice.doubleValue());
-        order.setTotalAmount(totalAmount.doubleValue());
+        order.setUnitPrice(unitPrice);
+        order.setTotalAmount(totalAmount);
 
         return orderRepo.save(order);
     }
 
     @Transactional
     public OrderEntity cancelOrder(Long id) {
-        OrderEntity order = getOrder(id);
+        OrderEntity order = orderRepo.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+
         if (order.getStatus() != OrderStatus.CREATED) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -93,17 +95,25 @@ public class OrderService {
             );
         }
 
-        order.setStatus(OrderStatus.CANCELLED);
-
-        if (order.getProductId() != null) {
-            productRepo.findById(order.getProductId()).ifPresent(product -> {
-                int stock = product.getStock() == null ? 0 : product.getStock();
-                int qty = order.getQuantity() == null ? 0 : order.getQuantity();
-                product.setStock(stock + qty);
-                productRepo.save(product);
-            });
+        if (order.getProductId() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Cannot cancel order: product reference is missing, stock cannot be restored"
+            );
         }
 
+        ProductEntity product = productRepo.findByIdForUpdate(order.getProductId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Cannot cancel order: product no longer exists, stock cannot be restored"
+                ));
+
+        int stock = product.getStock() == null ? 0 : product.getStock();
+        int qty = order.getQuantity() == null ? 0 : order.getQuantity();
+        product.setStock(ProductValidation.requireNonNegativeStock(stock + qty));
+        productRepo.save(product);
+
+        order.setStatus(OrderStatus.CANCELLED);
         return orderRepo.save(order);
     }
 
@@ -131,13 +141,6 @@ public class OrderService {
 
         Page<OrderEntity> result = orderRepo.findAll(spec, Paging.of(pageNumber, size, springSort));
         return new PageResponse<>(result.getContent(), pageNumber, size, result.getTotalElements());
-    }
-
-    public List<OrderEntity> listOrders(Integer userId) {
-        if (userId != null) {
-            return orderRepo.findByUserIdOrderByCreatedAtDesc(userId);
-        }
-        return orderRepo.findAll();
     }
 
     public OrderEntity getOrder(Long id) {

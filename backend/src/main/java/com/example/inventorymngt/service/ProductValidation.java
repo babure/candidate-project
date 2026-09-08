@@ -42,15 +42,15 @@ final class ProductValidation {
         }
     }
 
-    static double requirePrice(Double price) {
+    static BigDecimal requirePrice(BigDecimal price) {
         if (price == null) {
             throw badRequest("Price is required");
         }
-        BigDecimal value = BigDecimal.valueOf(price).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal value = price.setScale(2, RoundingMode.HALF_UP);
         if (value.compareTo(BigDecimal.ZERO) < 0 || value.compareTo(PRICE_MAX) > 0) {
             throw badRequest("Price must be between 0.00 and 99,999.99");
         }
-        return value.doubleValue();
+        return value;
     }
 
     static int requireStockAdjustAmount(Integer amount) {

@@ -4,8 +4,11 @@ import { useLocation, useParams } from 'react-router-dom';
 import BackLink from '../../components/ui/BackLink';
 import Panel from '../../components/ui/Panel';
 import DetailField from '../../components/ui/DetailField';
+import EmptyState from '../../components/ui/EmptyState';
 import { DetailPanelSkeleton } from '../../components/ui/LoadingSkeletons';
 import FormActions from '../../components/ui/FormActions';
+import { fetchJson, readErrorMessage } from '../../lib/fetchJson';
+import { formatMoney, type Order } from '../../types/api';
 
 type OrderDetailLocationState = {
   from?: 'catalog' | 'orders';
@@ -15,43 +18,50 @@ type OrderDetailLocationState = {
 export default function OrderDetailPage() {
   const { id } = useParams();
   const location = useLocation();
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loadError, setLoadError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   const navState = (location.state as OrderDetailLocationState | null) ?? null;
   const fromCatalog = navState?.from === 'catalog';
-  const backTo = fromCatalog ? '/oms/catalog' : '/oms/orders';
+  const backTo = fromCatalog
+    ? `/oms/catalog${navState?.listSearch ? `?${navState.listSearch}` : ''}`
+    : `/oms/orders${navState?.listSearch ? `?${navState.listSearch}` : ''}`;
   const backLabel = fromCatalog ? 'Back to catalog' : 'Back to orders';
 
-  const loadOrder = () => {
-    fetch(`/api/orders/${id}`)
-      .then((r) => r.json())
-      .then((data) => setOrder(data));
-  };
-
   useEffect(() => {
+    if (!id) return;
+    const controller = new AbortController();
+    setIsLoading(true);
+    setLoadError('');
     setOrder(null);
-    loadOrder();
-  }, [id]);
+
+    fetchJson<Order>(`/api/orders/${id}`, { signal: controller.signal })
+      .then((data) => {
+        if (!controller.signal.aborted) setOrder(data);
+      })
+      .catch((e) => {
+        if (e?.name === 'AbortError') return;
+        setLoadError(e.message || 'Failed to load order');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [id, reloadKey]);
 
   const handleCancel = () => {
     setError('');
     setCancelling(true);
     fetch(`/api/orders/${id}/cancel`, { method: 'POST' })
       .then(async (r) => {
-        if (!r.ok) {
-          const text = await r.text();
-          let message = 'Failed to cancel order';
-          try {
-            message = JSON.parse(text).message || message;
-          } catch {
-            if (text) message = text;
-          }
-          throw new Error(message);
-        }
-        return r.json();
+        if (!r.ok) throw new Error(await readErrorMessage(r, 'Failed to cancel order'));
+        return r.json() as Promise<Order>;
       })
       .then((data) => {
         setOrder(data);
@@ -63,6 +73,27 @@ export default function OrderDetailPage() {
         setError(e.message || 'Failed to cancel order');
       });
   };
+
+  if (isLoading && !order) {
+    return <DetailPanelSkeleton />;
+  }
+
+  if (loadError && !order) {
+    return (
+      <div className="w-full max-w-2xl">
+        <BackLink to={backTo} label={backLabel} />
+        <EmptyState
+          title="Couldn't load order"
+          description={loadError}
+          action={
+            <Button variant="primary" onPress={() => setReloadKey((k) => k + 1)}>
+              Try again
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
 
   if (!order) {
     return <DetailPanelSkeleton />;
@@ -96,10 +127,10 @@ export default function OrderDetailPage() {
             {order.quantity}
           </DetailField>
           <DetailField label="Unit Price" tabular>
-            ${order.unitPrice?.toFixed(2)}
+            ${formatMoney(order.unitPrice)}
           </DetailField>
           <DetailField label="Total Amount" tabular>
-            ${order.totalAmount?.toFixed(2)}
+            ${formatMoney(order.totalAmount)}
           </DetailField>
           <DetailField label="Date Placed">
             {order.createdAt ? new Date(order.createdAt).toLocaleString() : '—'}

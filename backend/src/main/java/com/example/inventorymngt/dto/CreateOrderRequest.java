@@ -1,9 +1,20 @@
 package com.example.inventorymngt.dto;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
 public class CreateOrderRequest {
 
+    @NotNull
     private Integer userId;
+
+    @NotNull
     private Long productId;
+
+    @NotNull
+    @Min(1)
+    @Max(999)
     private Integer quantity;
 
     public Integer getUserId() {
