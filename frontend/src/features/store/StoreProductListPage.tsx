@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Table, Chip, Button } from '@heroui/react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../components/ui/PageHeader';
+import { NavIcons } from '../../components/ui/NavIcons';
 import EmptyState from '../../components/ui/EmptyState';
 import DataTableShell from '../../components/ui/DataTableShell';
 import { CardGridSkeleton, TableListSkeleton } from '../../components/ui/LoadingSkeletons';
@@ -88,6 +89,7 @@ export default function StoreProductListPage() {
   const [pageData, setPageData] = useState<PagePayload | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
   const [categories, setCategories] = useState<string[]>([]);
   const { values, setValues, clearToDefaults, queryString } = useUrlQueryState(CATALOG_DEFAULTS);
   const navigate = useNavigate();
@@ -139,10 +141,10 @@ export default function StoreProductListPage() {
     params.set('page', String(page));
     params.set('pageSize', String(pageSize));
 
-    let cancelled = false;
+    const controller = new AbortController();
     setIsLoading(true);
     setLoadError('');
-    fetch(`/api/store/products?${params.toString()}`)
+    fetch(`/api/store/products?${params.toString()}`, { signal: controller.signal })
       .then(async (r) => {
         if (!r.ok) {
           const text = await r.text();
@@ -151,28 +153,53 @@ export default function StoreProductListPage() {
         return r.json();
       })
       .then((data) => {
-        if (cancelled) return;
+        if (controller.signal.aborted) return;
+        const items = Array.isArray(data?.items)
+          ? data.items
+          : Array.isArray(data?.content)
+            ? data.content
+            : Array.isArray(data)
+              ? data
+              : [];
+        const totalItems =
+          typeof data?.totalItems === 'number'
+            ? data.totalItems
+            : typeof data?.totalElements === 'number'
+              ? data.totalElements
+              : items.length;
         setPageData({
-          items: Array.isArray(data?.items) ? data.items : [],
+          items,
           page: data?.page ?? page,
           pageSize: data?.pageSize ?? pageSize,
-          totalItems: data?.totalItems ?? 0,
-          totalPages: data?.totalPages ?? 0,
+          totalItems,
+          totalPages:
+            typeof data?.totalPages === 'number'
+              ? data.totalPages
+              : Math.max(1, Math.ceil(totalItems / pageSize)),
         });
       })
       .catch((e) => {
-        if (cancelled) return;
+        if (e?.name === 'AbortError') return;
         setLoadError(e.message || 'Failed to load catalog');
-        setPageData({ items: [], page, pageSize, totalItems: 0, totalPages: 0 });
+        // Do not invent an empty success payload — that falsely shows "No products".
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false);
+        if (!controller.signal.aborted) setIsLoading(false);
       });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [values.q, category, availability, priceMin, priceMax, sortField, sortDir, page, pageSize]);
+    return () => controller.abort();
+  }, [
+    values.q,
+    category,
+    availability,
+    priceMin,
+    priceMax,
+    sortField,
+    sortDir,
+    page,
+    pageSize,
+    reloadKey,
+  ]);
 
   useEffect(() => {
     if (!pageData) return;
@@ -213,7 +240,9 @@ export default function StoreProductListPage() {
 
   const items = pageData?.items ?? [];
   const totalItems = pageData?.totalItems ?? 0;
-  const isInitialLoad = pageData === null && isLoading;
+  const showSkeleton = isLoading && pageData === null;
+  const showEmpty = !isLoading && !loadError && pageData !== null && totalItems === 0;
+  const showLoadFailure = !isLoading && !!loadError && pageData === null;
 
   const viewToggle = (
     <div className="flex shrink-0 overflow-hidden rounded-lg border border-default-200">
@@ -249,6 +278,7 @@ export default function StoreProductListPage() {
       <PageHeader
         title="Product Catalog"
         description="Browse available products and check stock status."
+        icon={<NavIcons.catalog />}
       />
 
       <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-0.5">
@@ -338,20 +368,30 @@ export default function StoreProductListPage() {
         </div>
       ) : null}
 
-      {loadError ? (
+      {loadError && pageData !== null ? (
         <p className="mb-3 text-sm text-danger" role="alert">
           {loadError}
         </p>
       ) : null}
 
-      {isInitialLoad ? (
+      {showSkeleton ? (
         view === 'cards' ? <CardGridSkeleton /> : <TableListSkeleton cols={5} />
-      ) : totalItems === 0 && !hasActiveFilters ? (
+      ) : showLoadFailure ? (
+        <EmptyState
+          title="Couldn't load catalog"
+          description={loadError || 'Something went wrong while loading products.'}
+          action={
+            <Button variant="primary" onPress={() => setReloadKey((k) => k + 1)}>
+              Try again
+            </Button>
+          }
+        />
+      ) : showEmpty && !hasActiveFilters ? (
         <EmptyState
           title="No products available"
           description="There are no products in the catalog right now. Check back later."
         />
-      ) : totalItems === 0 ? (
+      ) : showEmpty ? (
         <>
           <EmptyState
             title="No matching products"
@@ -369,6 +409,8 @@ export default function StoreProductListPage() {
             onPageChange={(p) => setValues({ page: p === 1 ? null : String(p) })}
           />
         </>
+      ) : pageData === null ? (
+        view === 'cards' ? <CardGridSkeleton /> : <TableListSkeleton cols={5} />
       ) : view === 'cards' ? (
         <>
           <div

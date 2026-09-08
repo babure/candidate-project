@@ -3,6 +3,7 @@ import { Table, Chip, Button } from '@heroui/react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 import PageHeader from '../../components/ui/PageHeader';
+import { NavIcons } from '../../components/ui/NavIcons';
 import EmptyState from '../../components/ui/EmptyState';
 import DataTableShell from '../../components/ui/DataTableShell';
 import { TableListSkeleton } from '../../components/ui/LoadingSkeletons';
@@ -46,6 +47,7 @@ export default function OrderHistoryPage() {
   const [pageData, setPageData] = useState<PagePayload | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
   const { values, setValues, queryString } = useUrlQueryState(ORDER_DEFAULTS);
   const { currentUser } = useUser();
   const navigate = useNavigate();
@@ -55,6 +57,13 @@ export default function OrderHistoryPage() {
   const pageSize = parsePositiveInt(values.pageSize, DEFAULT_PAGE_SIZE);
   const page = parsePositiveInt(values.page, 1);
 
+  // Clear stale list when switching dummy users so we never flash another user's empty state as "No orders yet".
+  useEffect(() => {
+    setPageData(null);
+    setIsLoading(true);
+    setLoadError('');
+  }, [currentUser.id]);
+
   useEffect(() => {
     const params = new URLSearchParams();
     params.set('userId', String(currentUser.id));
@@ -63,10 +72,11 @@ export default function OrderHistoryPage() {
     params.set('page', String(page));
     params.set('pageSize', String(pageSize));
 
-    let cancelled = false;
+    const controller = new AbortController();
     setIsLoading(true);
     setLoadError('');
-    fetch(`/api/orders?${params.toString()}`)
+
+    fetch(`/api/orders?${params.toString()}`, { signal: controller.signal })
       .then(async (r) => {
         if (!r.ok) {
           const text = await r.text();
@@ -75,28 +85,43 @@ export default function OrderHistoryPage() {
         return r.json();
       })
       .then((data) => {
-        if (cancelled) return;
+        if (controller.signal.aborted) return;
+        const items = Array.isArray(data?.items)
+          ? data.items
+          : Array.isArray(data?.content)
+            ? data.content
+            : Array.isArray(data)
+              ? data
+              : [];
+        const totalItems =
+          typeof data?.totalItems === 'number'
+            ? data.totalItems
+            : typeof data?.totalElements === 'number'
+              ? data.totalElements
+              : items.length;
+
         setPageData({
-          items: Array.isArray(data?.items) ? data.items : [],
+          items,
           page: data?.page ?? page,
           pageSize: data?.pageSize ?? pageSize,
-          totalItems: data?.totalItems ?? 0,
-          totalPages: data?.totalPages ?? 0,
+          totalItems,
+          totalPages:
+            typeof data?.totalPages === 'number'
+              ? data.totalPages
+              : Math.max(1, Math.ceil(totalItems / pageSize)),
         });
       })
       .catch((e) => {
-        if (cancelled) return;
+        if (e?.name === 'AbortError') return;
         setLoadError(e.message || 'Failed to load orders');
-        setPageData({ items: [], page, pageSize, totalItems: 0, totalPages: 0 });
+        // Do not invent an empty success payload — that falsely shows "No orders yet".
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false);
+        if (!controller.signal.aborted) setIsLoading(false);
       });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [currentUser.id, sortField, sortDir, page, pageSize]);
+    return () => controller.abort();
+  }, [currentUser.id, sortField, sortDir, page, pageSize, reloadKey]);
 
   useEffect(() => {
     if (!pageData) return;
@@ -125,24 +150,37 @@ export default function OrderHistoryPage() {
 
   const items = pageData?.items ?? [];
   const totalItems = pageData?.totalItems ?? 0;
-  const isInitialLoad = pageData === null && isLoading;
+  const showSkeleton = isLoading && pageData === null;
+  const showEmpty = !isLoading && !loadError && pageData !== null && totalItems === 0;
+  const showLoadFailure = !isLoading && !!loadError && pageData === null;
 
   return (
     <div>
       <PageHeader
         title="Order History"
         description={`Orders placed by ${currentUser.name}.`}
+        icon={<NavIcons.orders />}
       />
 
-      {loadError ? (
+      {loadError && pageData !== null ? (
         <p className="mb-3 text-sm text-danger" role="alert">
           {loadError}
         </p>
       ) : null}
 
-      {isInitialLoad ? (
+      {showSkeleton ? (
         <TableListSkeleton cols={5} />
-      ) : totalItems === 0 ? (
+      ) : showLoadFailure ? (
+        <EmptyState
+          title="Couldn't load orders"
+          description={loadError || 'Something went wrong while loading orders.'}
+          action={
+            <Button variant="primary" onPress={() => setReloadKey((k) => k + 1)}>
+              Try again
+            </Button>
+          }
+        />
+      ) : showEmpty ? (
         <EmptyState
           title="No orders yet"
           description="When you place an order from the catalog, it will show up here."
@@ -152,6 +190,8 @@ export default function OrderHistoryPage() {
             </Button>
           }
         />
+      ) : pageData === null ? (
+        <TableListSkeleton cols={5} />
       ) : (
         <>
           <div className={isLoading ? 'opacity-60' : ''} aria-busy={isLoading}>
