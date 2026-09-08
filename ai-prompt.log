@@ -110,3 +110,20 @@ prompt: |
   Table and Cards should be icon buttons instead of text, placed with the search/filter row.
   For order history, sorting should be on the table columns instead of a separate dropdown.
 ---
+timestamp: 2026-09-08T07:45:00Z
+model: Composer
+prompt: |
+  Category should come from the DB, not a random/hardcoded list.
+  Check if this is within scope and create an API for that in the product catalog
+  while showing the options for category.
+---
+timestamp: 2026-09-08T07:55:00Z
+model: Composer
+prompt: |
+  Everything is finished — make a few index-page changes:
+  add favicon from https://www.marketnode.com/;
+  change the head title by system with prefix MarketNode | (the system),
+  first page title is just MarketNode,
+  and add IMS/OMS full forms respectively;
+  remove email and profile icon on the first page — show those only in IMS and OMS.
+---

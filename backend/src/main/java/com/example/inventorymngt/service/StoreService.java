@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -26,6 +27,15 @@ public class StoreService {
         ProductEntitiy product = productRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
         return toDto(product);
+    }
+
+    public List<String> listCategories() {
+        return productRepo.findDistinctCategories().stream()
+                .filter(c -> c != null && !c.isBlank())
+                .map(String::trim)
+                .distinct()
+                .sorted(Comparator.naturalOrder())
+                .toList();
     }
 
     private StoreProductDto toDto(ProductEntitiy product) {

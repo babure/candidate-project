@@ -7,10 +7,10 @@ import DataTableShell from '../../components/ui/DataTableShell';
 import { CardGridSkeleton, TableListSkeleton } from '../../components/ui/LoadingSkeletons';
 import {
   SortableHeaderButton,
+  SortDirectionArrows,
   nextSortState,
   type SortDir,
 } from '../../components/ui/SortableHeaderButton';
-import { PRODUCT_CATEGORIES } from '../../lib/validation';
 
 type SortField = 'name' | 'price';
 type AvailabilityFilter = 'all' | 'in' | 'out';
@@ -41,6 +41,7 @@ function CardsIcon() {
 
 export default function StoreProductListPage() {
   const [products, setProducts] = useState<any[] | null>(null);
+  const [categories, setCategories] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [priceMin, setPriceMin] = useState('');
@@ -55,7 +56,17 @@ export default function StoreProductListPage() {
     fetch('/api/store/products')
       .then((r) => r.json())
       .then((data) => setProducts(data));
+    fetch('/api/store/categories')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => setCategories(Array.isArray(data) ? data : []))
+      .catch(() => setCategories([]));
   }, []);
+
+  useEffect(() => {
+    if (category !== 'all' && categories.length > 0 && !categories.includes(category)) {
+      setCategory('all');
+    }
+  }, [categories, category]);
 
   const clearFilters = () => {
     setSearch('');
@@ -164,7 +175,7 @@ export default function StoreProductListPage() {
           className={controlClass}
         >
           <option value="all">All categories</option>
-          {PRODUCT_CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <option key={c} value={c}>
               {c}
             </option>
@@ -216,17 +227,19 @@ export default function StoreProductListPage() {
           <span>Sort:</span>
           <button
             type="button"
-            className="cursor-pointer font-medium text-foreground underline-offset-2 hover:underline"
+            className="inline-flex cursor-pointer items-center gap-1.5 font-medium text-foreground underline-offset-2 hover:underline"
             onClick={() => toggleSort('name')}
           >
-            Name {sortField === 'name' ? (sortDir === 'asc' ? '▲' : '▼') : ''}
+            Name
+            <SortDirectionArrows active={sortField === 'name'} direction={sortDir} />
           </button>
           <button
             type="button"
-            className="cursor-pointer font-medium text-foreground underline-offset-2 hover:underline"
+            className="inline-flex cursor-pointer items-center gap-1.5 font-medium text-foreground underline-offset-2 hover:underline"
             onClick={() => toggleSort('price')}
           >
-            Price {sortField === 'price' ? (sortDir === 'asc' ? '▲' : '▼') : ''}
+            Price
+            <SortDirectionArrows active={sortField === 'price'} direction={sortDir} />
           </button>
         </div>
       ) : null}

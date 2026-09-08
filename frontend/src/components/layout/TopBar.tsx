@@ -82,40 +82,39 @@ export default function TopBar({
               Switch to {switchTargetLabel}
             </button>
             <span className="hidden h-6 w-px bg-white/25 sm:block" aria-hidden="true" />
+            <Dropdown>
+              <Dropdown.Trigger>
+                <button
+                  type="button"
+                  className="flex cursor-pointer items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  aria-label={`Current user ${currentUser.name}. Open user menu`}
+                >
+                  <span className="hidden text-sm text-[#f5f5f3]/70 sm:inline">
+                    {currentUser.email}
+                  </span>
+                  <Avatar size="sm">
+                    <Avatar.Fallback aria-hidden="true">{currentUser.name.charAt(0)}</Avatar.Fallback>
+                  </Avatar>
+                </button>
+              </Dropdown.Trigger>
+              <Dropdown.Popover>
+                <Dropdown.Menu
+                  aria-label="Switch user"
+                  onAction={(key: any) => {
+                    const user = users.find((u: any) => String(u.id) === String(key));
+                    if (user) onUserChange(user);
+                  }}
+                >
+                  {users.map((u: any) => (
+                    <Dropdown.Item key={u.id} id={String(u.id)} textValue={u.name}>
+                      {u.name}
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown.Popover>
+            </Dropdown>
           </>
         ) : null}
-
-        <Dropdown>
-          <Dropdown.Trigger>
-            <button
-              type="button"
-              className="flex cursor-pointer items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-              aria-label={`Current user ${currentUser.name}. Open user menu`}
-            >
-              <span className="hidden text-sm text-[#f5f5f3]/70 sm:inline">
-                {currentUser.email}
-              </span>
-              <Avatar size="sm">
-                <Avatar.Fallback aria-hidden="true">{currentUser.name.charAt(0)}</Avatar.Fallback>
-              </Avatar>
-            </button>
-          </Dropdown.Trigger>
-          <Dropdown.Popover>
-            <Dropdown.Menu
-              aria-label="Switch user"
-              onAction={(key: any) => {
-                const user = users.find((u: any) => String(u.id) === String(key));
-                if (user) onUserChange(user);
-              }}
-            >
-              {users.map((u: any) => (
-                <Dropdown.Item key={u.id} id={String(u.id)} textValue={u.name}>
-                  {u.name}
-                </Dropdown.Item>
-              ))}
-            </Dropdown.Menu>
-          </Dropdown.Popover>
-        </Dropdown>
       </div>
     </header>
   );

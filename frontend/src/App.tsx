@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { UserProvider } from './context/UserContext';
+import DocumentTitle from './components/DocumentTitle';
 import SystemSelectPage from './features/SystemSelectPage';
 import ProductListPage from './features/products/ProductListPage';
 import ProductDetailPage from './features/products/ProductDetailPage';
@@ -14,6 +15,7 @@ function App() {
   return (
     <UserProvider>
       <BrowserRouter>
+        <DocumentTitle />
         <Routes>
           <Route path="/" element={<SystemSelectPage />} />
 
