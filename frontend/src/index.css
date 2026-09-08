@@ -1,2 +1,54 @@
 @import "tailwindcss";
 @import "@heroui/styles";
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--color-default-100, #f4f4f5);
+  color: var(--color-foreground, #18181b);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent, #006fee);
+  outline-offset: 2px;
+}
+
+/* Flatten HeroUI primary table inset card so rows sit flush in DataTableShell */
+.table-root--primary {
+  padding: 0 !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+
+.table-root--primary .table__body tr:first-child td:first-child,
+.table-root--primary .table__body tr:first-child td:last-child,
+.table-root--primary .table__body tr:last-child td:first-child,
+.table-root--primary .table__body tr:last-child td:last-child {
+  border-radius: 0 !important;
+}
+
+/* Keep table header/body flush with shell — no rounded header corners leaking white */
+.data-table-shell .table-root {
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.data-table-shell .table__column,
+.data-table-shell .table__header .table__column,
+.data-table-shell .table__body td,
+.data-table-shell .table__cell {
+  border-radius: 0 !important;
+}
+
+.data-table-shell .table-root--secondary .table__column {
+  border-start-start-radius: 0 !important;
+  border-start-end-radius: 0 !important;
+  border-end-start-radius: 0 !important;
+  border-end-end-radius: 0 !important;
+}

@@ -17,7 +17,6 @@ export default function ImsLayout() {
       onNavigate={(key: string) => {
         if (key === 'products') navigate('/ims/products');
       }}
-      onSwitchSystem={() => navigate('/')}
     >
       <Outlet key={location.pathname} />
     </AppLayout>

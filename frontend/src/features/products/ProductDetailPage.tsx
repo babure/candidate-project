@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, TextField, Input, Label, Chip } from '@heroui/react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Button, TextField, Input, Label, Chip } from '@heroui/react';
+import { useParams } from 'react-router-dom';
+import BackLink from '../../components/ui/BackLink';
+import Panel from '../../components/ui/Panel';
+import DetailField from '../../components/ui/DetailField';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [product, setProduct] = useState<any>(null);
   const [editData, setEditData] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [stockAmount, setStockAmount] = useState('');
+  const [stockError, setStockError] = useState('');
 
   useEffect(() => {
     fetch(`/api/products/${id}`)
@@ -17,7 +20,12 @@ export default function ProductDetailPage() {
   }, [id]);
 
   const handleEdit = () => {
-    setEditData({ name: product.name, description: product.description || '', category: product.category || '', price: product.price });
+    setEditData({
+      name: product.name,
+      description: product.description || '',
+      category: product.category || '',
+      price: product.price,
+    });
     setIsEditing(true);
   };
 
@@ -37,6 +45,11 @@ export default function ProductDetailPage() {
   };
 
   const handleStockAdjust = () => {
+    setStockError('');
+    if (!stockAmount.trim()) {
+      setStockError('Enter an amount to adjust stock.');
+      return;
+    }
     fetch(`/api/products/${product.id}/stock?amount=${stockAmount}`, {
       method: 'PATCH',
     })
@@ -47,104 +60,107 @@ export default function ProductDetailPage() {
       });
   };
 
-  if (!product) return null;
+  if (!product) {
+    return (
+      <p className="text-sm text-default-500" role="status" aria-live="polite">
+        Loading product…
+      </p>
+    );
+  }
 
   return (
     <div className="max-w-2xl">
-      <Button variant="ghost" onPress={() => navigate('/ims/products')} className="mb-4">
-        ← Back to products
-      </Button>
+      <BackLink to="/ims/products" label="Back to products" />
 
-      <Card className="mb-6">
-        <Card.Header className="flex justify-between items-center">
-          <Card.Title>Product Detail</Card.Title>
+      <Panel
+        className="mb-4"
+        title="Product Detail"
+        actions={
           <div className="flex items-center gap-2">
             <Chip size="sm" color={product.stock > 0 ? 'success' : 'danger'}>
-              <Chip.Label>Stock: {product.stock}</Chip.Label>
+              <Chip.Label className="tabular-nums">Stock: {product.stock}</Chip.Label>
             </Chip>
             {!isEditing && (
-              <Button size="sm" variant="outline" onPress={handleEdit}>Edit</Button>
+              <Button size="sm" variant="outline" onPress={handleEdit}>
+                Edit
+              </Button>
             )}
           </div>
-        </Card.Header>
-        <Card.Content className="flex flex-col gap-4">
-          {isEditing ? (
-            <>
-              <TextField>
-                <Label>Name</Label>
-                <Input
-                  value={editData.name}
-                  onChange={(e: any) => setEditData({ ...editData, name: e.target.value })}
-                />
-              </TextField>
-              <TextField>
-                <Label>Category</Label>
-                <Input
-                  value={editData.category}
-                  onChange={(e: any) => setEditData({ ...editData, category: e.target.value })}
-                />
-              </TextField>
-              <TextField>
-                <Label>Description</Label>
-                <Input
-                  value={editData.description}
-                  onChange={(e: any) => setEditData({ ...editData, description: e.target.value })}
-                />
-              </TextField>
-              <TextField>
-                <Label>Price</Label>
-                <Input
-                  type="number"
-                  value={String(editData.price)}
-                  onChange={(e: any) => setEditData({ ...editData, price: Number(e.target.value) })}
-                />
-              </TextField>
-              <div className="flex gap-2">
-                <Button variant="primary" onPress={handleUpdate}>Save Changes</Button>
-                <Button variant="outline" onPress={handleCancelEdit}>Cancel</Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <p className="text-sm text-default-500">Name</p>
-                <p className="font-medium">{product.name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-default-500">Category</p>
-                <p>{product.category || '—'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-default-500">Description</p>
-                <p>{product.description || '—'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-default-500">Price</p>
-                <p className="font-medium">${product.price?.toFixed(2)}</p>
-              </div>
-            </>
-          )}
-        </Card.Content>
-      </Card>
-
-      <Card>
-        <Card.Header>
-          <Card.Title>Adjust Stock</Card.Title>
-        </Card.Header>
-        <Card.Content>
-          <div className="flex gap-3 items-end">
-            <TextField>
-              <Label>Amount</Label>
+        }
+      >
+        {isEditing ? (
+          <>
+            <TextField isRequired>
+              <Label>Name</Label>
               <Input
-                placeholder="e.g. 5 or -3"
-                value={stockAmount}
-                onChange={(e: any) => setStockAmount(e.target.value)}
+                value={editData.name}
+                onChange={(e: any) => setEditData({ ...editData, name: e.target.value })}
               />
             </TextField>
-            <Button variant="primary" onPress={handleStockAdjust}>Adjust</Button>
-          </div>
-        </Card.Content>
-      </Card>
+            <TextField>
+              <Label>Category</Label>
+              <Input
+                value={editData.category}
+                onChange={(e: any) => setEditData({ ...editData, category: e.target.value })}
+              />
+            </TextField>
+            <TextField>
+              <Label>Description</Label>
+              <Input
+                value={editData.description}
+                onChange={(e: any) => setEditData({ ...editData, description: e.target.value })}
+              />
+            </TextField>
+            <TextField isRequired>
+              <Label>Price</Label>
+              <Input
+                type="number"
+                value={String(editData.price)}
+                onChange={(e: any) => setEditData({ ...editData, price: Number(e.target.value) })}
+              />
+            </TextField>
+            <div className="flex gap-2">
+              <Button variant="primary" onPress={handleUpdate}>
+                Save Changes
+              </Button>
+              <Button variant="outline" onPress={handleCancelEdit}>
+                Cancel
+              </Button>
+            </div>
+          </>
+        ) : (
+          <dl className="grid gap-4">
+            <DetailField label="Name">{product.name}</DetailField>
+            <DetailField label="Category">{product.category || '—'}</DetailField>
+            <DetailField label="Description">{product.description || '—'}</DetailField>
+            <DetailField label="Price" tabular>
+              ${product.price?.toFixed(2)}
+            </DetailField>
+          </dl>
+        )}
+      </Panel>
+
+      <Panel title="Adjust Stock">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <TextField className="min-w-[12rem] flex-1">
+            <Label>Amount</Label>
+            <Input
+              placeholder="e.g. 5 or -3"
+              value={stockAmount}
+              onChange={(e: any) => setStockAmount(e.target.value)}
+              inputMode="numeric"
+            />
+          </TextField>
+          <Button variant="primary" onPress={handleStockAdjust}>
+            Adjust
+          </Button>
+        </div>
+        {stockError ? (
+          <p className="text-sm text-danger" role="alert">
+            {stockError}
+          </p>
+        ) : null}
+      </Panel>
     </div>
   );
 }

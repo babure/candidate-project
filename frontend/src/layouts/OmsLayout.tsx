@@ -20,7 +20,6 @@ export default function OmsLayout() {
         if (key === 'catalog') navigate('/oms/catalog');
         if (key === 'orders') navigate('/oms/orders');
       }}
-      onSwitchSystem={() => navigate('/')}
     >
       <Outlet key={location.pathname} />
     </AppLayout>

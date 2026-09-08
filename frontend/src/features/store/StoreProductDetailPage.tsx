@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, TextField, Input, Label, Chip } from '@heroui/react';
+import { Button, TextField, Input, Label, Chip } from '@heroui/react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
+import BackLink from '../../components/ui/BackLink';
+import Panel from '../../components/ui/Panel';
+import DetailField from '../../components/ui/DetailField';
 
 export default function StoreProductDetailPage() {
   const { id } = useParams();
@@ -20,6 +23,11 @@ export default function StoreProductDetailPage() {
 
   const handlePlaceOrder = () => {
     setError('');
+    const qty = Number(quantity);
+    if (!Number.isFinite(qty) || qty < 1) {
+      setError('Quantity must be at least 1.');
+      return;
+    }
     setPlacing(true);
     fetch('/api/orders', {
       method: 'POST',
@@ -27,7 +35,7 @@ export default function StoreProductDetailPage() {
       body: JSON.stringify({
         userId: currentUser.id,
         productId: product.id,
-        quantity: Number(quantity),
+        quantity: qty,
       }),
     })
       .then(async (r) => {
@@ -54,67 +62,63 @@ export default function StoreProductDetailPage() {
       });
   };
 
-  if (!product) return null;
+  if (!product) {
+    return (
+      <p className="text-sm text-default-500" role="status" aria-live="polite">
+        Loading product…
+      </p>
+    );
+  }
 
   return (
     <div className="max-w-2xl">
-      <Button variant="ghost" onPress={() => navigate('/oms/catalog')} className="mb-4">
-        ← Back to catalog
-      </Button>
+      <BackLink to="/oms/catalog" label="Back to catalog" />
 
-      <Card className="mb-6">
-        <Card.Header className="flex justify-between items-center">
-          <Card.Title>Product Detail</Card.Title>
+      <Panel
+        className="mb-4"
+        title="Product Detail"
+        actions={
           <Chip size="sm" color={product.inStock ? 'success' : 'danger'}>
             <Chip.Label>{product.inStock ? 'In stock' : 'Out of stock'}</Chip.Label>
           </Chip>
-        </Card.Header>
-        <Card.Content className="flex flex-col gap-4">
-          <div>
-            <p className="text-sm text-default-500">Name</p>
-            <p className="font-medium">{product.name}</p>
-          </div>
-          <div>
-            <p className="text-sm text-default-500">Category</p>
-            <p>{product.category || '—'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-default-500">Description</p>
-            <p>{product.description || '—'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-default-500">Price</p>
-            <p className="font-medium">${product.price?.toFixed(2)}</p>
-          </div>
-        </Card.Content>
-      </Card>
+        }
+      >
+        <dl className="grid gap-4">
+          <DetailField label="Name">{product.name}</DetailField>
+          <DetailField label="Category">{product.category || '—'}</DetailField>
+          <DetailField label="Description">{product.description || '—'}</DetailField>
+          <DetailField label="Price" tabular>
+            ${product.price?.toFixed(2)}
+          </DetailField>
+        </dl>
+      </Panel>
 
-      <Card>
-        <Card.Header>
-          <Card.Title>Place Order</Card.Title>
-        </Card.Header>
-        <Card.Content className="flex flex-col gap-4">
-          <TextField>
-            <Label>Quantity</Label>
-            <Input
-              type="number"
-              min={1}
-              max={999}
-              value={quantity}
-              onChange={(e: any) => setQuantity(e.target.value)}
-              isDisabled={!product.inStock}
-            />
-          </TextField>
-          {error && <p className="text-sm text-danger">{error}</p>}
-          <Button
-            variant="primary"
-            onPress={handlePlaceOrder}
-            isDisabled={!product.inStock || placing}
-          >
-            {placing ? 'Placing…' : 'Place Order'}
-          </Button>
-        </Card.Content>
-      </Card>
+      <Panel title="Place Order">
+        <TextField>
+          <Label>Quantity</Label>
+          <Input
+            type="number"
+            min={1}
+            max={999}
+            value={quantity}
+            onChange={(e: any) => setQuantity(e.target.value)}
+            isDisabled={!product.inStock}
+            aria-describedby={error ? 'order-error' : undefined}
+          />
+        </TextField>
+        {error ? (
+          <p id="order-error" className="text-sm text-danger" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <Button
+          variant="primary"
+          onPress={handlePlaceOrder}
+          isDisabled={!product.inStock || placing}
+        >
+          {placing ? 'Placing…' : 'Place Order'}
+        </Button>
+      </Panel>
     </div>
   );
 }

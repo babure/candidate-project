@@ -40,3 +40,32 @@ model: Composer
 prompt: |
   When clicked on the Orders tab, please navigate to the order page.
 ---
+timestamp: 2026-09-08T06:27:00Z
+model: Composer
+prompt: |
+  Now the basic features are working. Use the UI Skills skill to improve the UI.
+  Do not change the entire structure — keep it accessible and clean, and follow the same pattern across screens.
+---
+timestamp: 2026-09-08T06:33:00Z
+model: Composer
+prompt: |
+  After thorough inspection, need to make a few changes:
+  1. Use appropriate icons for each tab and persist the same across the application.
+  2. Highlight the selected tab.
+  3. The edges of the table have white spaces — please correct it. This is true for all the tables.
+---
+timestamp: 2026-09-08T06:46:00Z
+model: Composer
+prompt: |
+  Bring the Switch system control to the right and add an icon to it, and in its place show the IMS or OMS text.
+  In the table, the header shadow is rounded and leaks white space behind the curves — fix it.
+---
+timestamp: 2026-09-08T06:52:00Z
+model: Composer
+prompt: |
+  Make the below changes, without breaking or touching other functionalities:
+  1. This is the logo with brand text, but the text and logo have white parts, so if we use it directly on a light header it will not work. Change the header color to match the parent site theme — refer to https://www.marketnode.com/ for the header color — and use this logo: https://www.marketnode.com/assets/logo-CSWBp09r.png.
+  2. When clicked on the logo, navigate to the system change page; when clicked on Switch system, change from OMS to IMS and vice versa.
+  3. Beside the logo, instead of IMS or OMS use the full text, and remove that repeated text in the side nav section.
+  4. On tab hover, change the pointer; for the highlight add a background; and have clear visual differences between active/inactive and selected/non-selected items.
+---

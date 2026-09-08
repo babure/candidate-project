@@ -9,20 +9,23 @@ export default function AppLayout({
   system = 'ims',
   active = 'products',
   onNavigate,
-  onSwitchSystem,
 }: any) {
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex h-dvh flex-col bg-default-100">
       <TopBar
         currentUser={currentUser}
         users={users}
         onUserChange={onUserChange}
-        onSwitchSystem={onSwitchSystem}
+        system={system}
       />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         <Sidebar active={active} system={system} onNavigate={onNavigate} />
-        <main className="flex-1 overflow-y-auto bg-default-100 p-6">
-          {children}
+        <main
+          id="main-content"
+          className="min-w-0 flex-1 overflow-y-auto p-6"
+          tabIndex={-1}
+        >
+          <div className="mx-auto w-full max-w-6xl">{children}</div>
         </main>
       </div>
     </div>

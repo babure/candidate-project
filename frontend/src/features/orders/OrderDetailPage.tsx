@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, Chip } from '@heroui/react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Chip } from '@heroui/react';
+import { useParams } from 'react-router-dom';
+import BackLink from '../../components/ui/BackLink';
+import Panel from '../../components/ui/Panel';
+import DetailField from '../../components/ui/DetailField';
 
 export default function OrderDetailPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [order, setOrder] = useState<any>(null);
 
   useEffect(() => {
@@ -13,48 +15,45 @@ export default function OrderDetailPage() {
       .then((data) => setOrder(data));
   }, [id]);
 
-  if (!order) return null;
+  if (!order) {
+    return (
+      <p className="text-sm text-default-500" role="status" aria-live="polite">
+        Loading order…
+      </p>
+    );
+  }
 
   return (
     <div className="max-w-2xl">
-      <Button variant="ghost" onPress={() => navigate('/oms/orders')} className="mb-4">
-        ← Back to orders
-      </Button>
+      <BackLink to="/oms/orders" label="Back to orders" />
 
-      <Card>
-        <Card.Header className="flex justify-between items-center">
-          <Card.Title>Order Detail</Card.Title>
+      <Panel
+        title="Order Detail"
+        actions={
           <Chip size="sm" color={order.status === 'CREATED' ? 'success' : 'default'}>
             <Chip.Label>{order.status}</Chip.Label>
           </Chip>
-        </Card.Header>
-        <Card.Content className="flex flex-col gap-4">
-          <div>
-            <p className="text-sm text-default-500">Order ID</p>
-            <p className="font-medium">{order.id}</p>
-          </div>
-          <div>
-            <p className="text-sm text-default-500">Product Name</p>
-            <p className="font-medium">{order.productName}</p>
-          </div>
-          <div>
-            <p className="text-sm text-default-500">Quantity</p>
-            <p>{order.quantity}</p>
-          </div>
-          <div>
-            <p className="text-sm text-default-500">Unit Price</p>
-            <p>${order.unitPrice?.toFixed(2)}</p>
-          </div>
-          <div>
-            <p className="text-sm text-default-500">Total Amount</p>
-            <p className="font-medium">${order.totalAmount?.toFixed(2)}</p>
-          </div>
-          <div>
-            <p className="text-sm text-default-500">Date Placed</p>
-            <p>{order.createdAt ? new Date(order.createdAt).toLocaleString() : '—'}</p>
-          </div>
-        </Card.Content>
-      </Card>
+        }
+      >
+        <dl className="grid gap-4">
+          <DetailField label="Order ID" tabular>
+            {order.id}
+          </DetailField>
+          <DetailField label="Product Name">{order.productName}</DetailField>
+          <DetailField label="Quantity" tabular>
+            {order.quantity}
+          </DetailField>
+          <DetailField label="Unit Price" tabular>
+            ${order.unitPrice?.toFixed(2)}
+          </DetailField>
+          <DetailField label="Total Amount" tabular>
+            ${order.totalAmount?.toFixed(2)}
+          </DetailField>
+          <DetailField label="Date Placed">
+            {order.createdAt ? new Date(order.createdAt).toLocaleString() : '—'}
+          </DetailField>
+        </dl>
+      </Panel>
     </div>
   );
 }
