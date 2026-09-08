@@ -5,6 +5,7 @@ import BackLink from '../../components/ui/BackLink';
 import Panel from '../../components/ui/Panel';
 import DetailField from '../../components/ui/DetailField';
 import { DetailPanelSkeleton } from '../../components/ui/LoadingSkeletons';
+import FormActions from '../../components/ui/FormActions';
 
 export default function OrderDetailPage() {
   const { id } = useParams();
@@ -121,16 +122,18 @@ export default function OrderDetailPage() {
                 </p>
               </AlertDialog.Body>
               <AlertDialog.Footer>
-                <Button
-                  variant="outline"
-                  onPress={() => setConfirmOpen(false)}
-                  isDisabled={cancelling}
-                >
-                  Keep order
-                </Button>
-                <Button variant="danger" onPress={handleCancel} isDisabled={cancelling}>
-                  {cancelling ? 'Cancelling…' : 'Cancel order'}
-                </Button>
+                <FormActions>
+                  <Button
+                    variant="outline"
+                    onPress={() => setConfirmOpen(false)}
+                    isDisabled={cancelling}
+                  >
+                    Keep order
+                  </Button>
+                  <Button variant="danger" onPress={handleCancel} isDisabled={cancelling}>
+                    {cancelling ? 'Cancelling…' : 'Cancel order'}
+                  </Button>
+                </FormActions>
               </AlertDialog.Footer>
             </AlertDialog.Dialog>
           </AlertDialog.Container>

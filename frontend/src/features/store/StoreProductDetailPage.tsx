@@ -7,6 +7,7 @@ import Panel from '../../components/ui/Panel';
 import DetailField from '../../components/ui/DetailField';
 import { PRODUCT_RULES, validateOrderQuantity } from '../../lib/validation';
 import { DetailPanelSkeleton } from '../../components/ui/LoadingSkeletons';
+import FormActions from '../../components/ui/FormActions';
 
 export default function StoreProductDetailPage() {
   const { id } = useParams();
@@ -112,13 +113,15 @@ export default function StoreProductDetailPage() {
             {error}
           </p>
         ) : null}
-        <Button
-          variant="primary"
-          onPress={handlePlaceOrder}
-          isDisabled={!product.inStock || placing}
-        >
-          {placing ? 'Placing…' : 'Place Order'}
-        </Button>
+        <FormActions>
+          <Button
+            variant="primary"
+            onPress={handlePlaceOrder}
+            isDisabled={!product.inStock || placing}
+          >
+            {placing ? 'Placing…' : 'Place Order'}
+          </Button>
+        </FormActions>
       </Panel>
     </div>
   );

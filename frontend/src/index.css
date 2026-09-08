@@ -13,9 +13,38 @@ body {
   color: var(--color-foreground, #18181b);
 }
 
+/* Thinner focus highlight app-wide */
 :focus-visible {
-  outline: 2px solid var(--color-accent, #006fee);
-  outline-offset: 2px;
+  outline: 1px solid var(--color-accent, #006fee);
+  outline-offset: 1px;
+}
+
+/* HeroUI / native fields: 1px focus ring instead of ring-2 */
+.input:focus,
+.input[data-focused="true"],
+.textarea:focus,
+.textarea[data-focused="true"],
+.select__trigger:focus,
+.select__trigger[data-focused="true"],
+.number-field:focus-within,
+.input-group:focus-within {
+  --tw-ring-width: 1px;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.input:focus-visible,
+.input[data-focus-visible="true"],
+.textarea:focus-visible,
+.textarea[data-focus-visible="true"] {
+  outline: none;
+}
+
+/* Shared native control focus (catalog filters, category selects) */
+.form-control:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--color-accent, #006fee);
 }
 
 /* Flatten HeroUI primary table inset card so rows sit flush in DataTableShell */

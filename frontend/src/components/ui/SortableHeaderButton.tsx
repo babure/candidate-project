@@ -80,7 +80,7 @@ export function SortableHeaderButton({
         e.stopPropagation();
         onClick();
       }}
-      className="inline-flex cursor-pointer items-center gap-1 uppercase outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      className="inline-flex cursor-pointer items-center gap-1 uppercase outline-none focus-visible:ring-1 focus-visible:ring-accent"
       aria-label={`Sort by ${label}${active ? `, currently ${direction === 'asc' ? 'ascending' : 'descending'}` : ''}`}
     >
       <span className={active ? 'font-semibold text-foreground' : 'font-medium text-muted'}>

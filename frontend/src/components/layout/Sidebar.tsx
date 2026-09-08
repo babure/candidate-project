@@ -53,7 +53,7 @@ export default function Sidebar({ active, system = 'ims', onNavigate, onExitSyst
                     }}
                     className={[
                       'flex w-full items-center gap-3 rounded-lg border px-2.5 py-2 text-sm outline-none transition-colors',
-                      'focus-visible:ring-2 focus-visible:ring-accent',
+                      'focus-visible:ring-1 focus-visible:ring-accent',
                       item.disabled
                         ? 'cursor-not-allowed border-transparent text-default-300 opacity-60'
                         : selected
@@ -84,7 +84,7 @@ export default function Sidebar({ active, system = 'ims', onNavigate, onExitSyst
           <button
             type="button"
             onClick={handleExit}
-            className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-transparent px-2.5 py-2 text-sm text-default-600 outline-none transition-colors hover:border-default-200 hover:bg-default-50 hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent"
+            className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-transparent px-2.5 py-2 text-sm text-default-600 outline-none transition-colors hover:border-default-200 hover:bg-default-50 hover:text-foreground focus-visible:ring-1 focus-visible:ring-accent"
           >
             <span className="text-default-500">
               <ExitIcon />

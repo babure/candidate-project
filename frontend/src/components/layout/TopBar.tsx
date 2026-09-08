@@ -50,7 +50,7 @@ export default function TopBar({
         <button
           type="button"
           onClick={() => navigate('/')}
-          className="flex cursor-pointer items-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          className="flex cursor-pointer items-center rounded-md outline-none focus-visible:ring-1 focus-visible:ring-white/40"
           aria-label="MarketNode home — select system"
         >
           <img
@@ -75,7 +75,7 @@ export default function TopBar({
             <button
               type="button"
               onClick={() => navigate(system === 'oms' ? '/ims/products' : '/oms/catalog')}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3.5 py-2 text-sm font-medium text-[#f5f5f3] outline-none transition-colors hover:border-white/50 hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/40"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3.5 py-2 text-sm font-medium text-[#f5f5f3] outline-none transition-colors hover:border-white/50 hover:bg-white/15 focus-visible:ring-1 focus-visible:ring-white/40"
               aria-label={`Switch to ${switchTargetLabel}`}
             >
               <SwitchIcon />
@@ -86,7 +86,7 @@ export default function TopBar({
               <Dropdown.Trigger>
                 <button
                   type="button"
-                  className="flex cursor-pointer items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  className="flex cursor-pointer items-center gap-2 rounded-md outline-none focus-visible:ring-1 focus-visible:ring-white/40"
                   aria-label={`Current user ${currentUser.name}. Open user menu`}
                 >
                   <span className="hidden text-sm text-[#f5f5f3]/70 sm:inline">

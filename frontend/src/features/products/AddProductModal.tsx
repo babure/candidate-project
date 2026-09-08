@@ -6,6 +6,7 @@ import {
   roundMoney,
   validateProductInput,
 } from '../../lib/validation';
+import FormActions from '../../components/ui/FormActions';
 
 export default function AddProductModal({ isOpen, onClose, onCreated }: any) {
   const [name, setName] = useState('');
@@ -103,7 +104,7 @@ export default function AddProductModal({ isOpen, onClose, onCreated }: any) {
                     required
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full rounded-lg border border-default-200 bg-white px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    className="form-control w-full rounded-lg border border-default-200 bg-white px-3 py-2 text-sm outline-none"
                   >
                     <option value="">Select a category</option>
                     {PRODUCT_CATEGORIES.map((c) => (
@@ -140,18 +141,20 @@ export default function AddProductModal({ isOpen, onClose, onCreated }: any) {
               </div>
             </Modal.Body>
             <Modal.Footer>
-              <Button
-                variant="outline"
-                onPress={() => {
-                  reset();
-                  onClose();
-                }}
-              >
-                Cancel
-              </Button>
-              <Button variant="primary" onPress={handleSubmit} isDisabled={saving}>
-                {saving ? 'Saving…' : 'Save'}
-              </Button>
+              <FormActions>
+                <Button
+                  variant="outline"
+                  onPress={() => {
+                    reset();
+                    onClose();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button variant="primary" onPress={handleSubmit} isDisabled={saving}>
+                  {saving ? 'Saving…' : 'Save'}
+                </Button>
+              </FormActions>
             </Modal.Footer>
           </Modal.Dialog>
         </Modal.Container>

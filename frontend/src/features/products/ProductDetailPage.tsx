@@ -12,6 +12,7 @@ import {
   validateStockAdjust,
 } from '../../lib/validation';
 import { DetailPanelSkeleton } from '../../components/ui/LoadingSkeletons';
+import FormActions from '../../components/ui/FormActions';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -176,7 +177,7 @@ export default function ProductDetailPage() {
                 required
                 value={editData.category}
                 onChange={(e) => setEditData({ ...editData, category: e.target.value })}
-                className="w-full rounded-lg border border-default-200 bg-white px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="form-control w-full rounded-lg border border-default-200 bg-white px-3 py-2 text-sm outline-none"
               >
                 <option value="">Select a category</option>
                 {!(PRODUCT_CATEGORIES as readonly string[]).includes(editData.category) && editData.category ? (
@@ -215,14 +216,14 @@ export default function ProductDetailPage() {
                 {editError}
               </p>
             ) : null}
-            <div className="flex gap-2">
-              <Button variant="primary" onPress={handleUpdate} isDisabled={saving}>
-                {saving ? 'Saving…' : 'Save Changes'}
-              </Button>
+            <FormActions>
               <Button variant="outline" onPress={handleCancelEdit} isDisabled={saving}>
                 Cancel
               </Button>
-            </div>
+              <Button variant="primary" onPress={handleUpdate} isDisabled={saving}>
+                {saving ? 'Saving…' : 'Save Changes'}
+              </Button>
+            </FormActions>
           </>
         ) : (
           <dl className="grid gap-4">
@@ -237,25 +238,25 @@ export default function ProductDetailPage() {
       </Panel>
 
       <Panel title="Adjust Stock">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <TextField className="min-w-[12rem] flex-1">
-            <Label>Amount</Label>
-            <Input
-              placeholder="e.g. 5 or -3"
-              value={stockAmount}
-              onChange={(e: any) => setStockAmount(e.target.value)}
-              inputMode="numeric"
-            />
-          </TextField>
-          <Button variant="primary" onPress={handleStockAdjust} isDisabled={adjusting}>
-            {adjusting ? 'Adjusting…' : 'Adjust'}
-          </Button>
-        </div>
+        <TextField>
+          <Label>Amount</Label>
+          <Input
+            placeholder="e.g. 5 or -3"
+            value={stockAmount}
+            onChange={(e: any) => setStockAmount(e.target.value)}
+            inputMode="numeric"
+          />
+        </TextField>
         {stockError ? (
           <p className="text-sm text-danger" role="alert">
             {stockError}
           </p>
         ) : null}
+        <FormActions>
+          <Button variant="primary" onPress={handleStockAdjust} isDisabled={adjusting}>
+            {adjusting ? 'Adjusting…' : 'Adjust'}
+          </Button>
+        </FormActions>
       </Panel>
     </div>
   );

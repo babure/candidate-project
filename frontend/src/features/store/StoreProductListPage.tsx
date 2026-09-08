@@ -17,7 +17,7 @@ type AvailabilityFilter = 'all' | 'in' | 'out';
 type ViewMode = 'table' | 'cards';
 
 const controlClass =
-  'h-9 rounded-lg border border-default-200 bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent';
+  'form-control h-9 rounded-lg border border-default-200 bg-white px-3 text-sm outline-none';
 
 function TableIcon() {
   return (
@@ -129,7 +129,7 @@ export default function StoreProductListPage() {
         aria-pressed={view === 'table'}
         onClick={() => setView('table')}
         className={[
-          'inline-flex size-9 cursor-pointer items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-accent',
+          'inline-flex size-9 cursor-pointer items-center justify-center outline-none focus-visible:ring-1 focus-visible:ring-accent',
           view === 'table' ? 'bg-default-100 text-foreground' : 'bg-white text-default-500 hover:bg-default-50',
         ].join(' ')}
       >
@@ -141,7 +141,7 @@ export default function StoreProductListPage() {
         aria-pressed={view === 'cards'}
         onClick={() => setView('cards')}
         className={[
-          'inline-flex size-9 cursor-pointer items-center justify-center border-l border-default-200 outline-none focus-visible:ring-2 focus-visible:ring-accent',
+          'inline-flex size-9 cursor-pointer items-center justify-center border-l border-default-200 outline-none focus-visible:ring-1 focus-visible:ring-accent',
           view === 'cards' ? 'bg-default-100 text-foreground' : 'bg-white text-default-500 hover:bg-default-50',
         ].join(' ')}
       >
@@ -270,7 +270,7 @@ export default function StoreProductListPage() {
               key={p.id}
               type="button"
               onClick={() => navigate(`/oms/catalog/${p.id}`)}
-              className="cursor-pointer rounded-lg border border-default-200 bg-white p-4 text-left outline-none transition-colors hover:border-default-300 hover:bg-default-50 focus-visible:ring-2 focus-visible:ring-accent"
+              className="cursor-pointer rounded-lg border border-default-200 bg-white p-4 text-left outline-none transition-colors hover:border-default-300 hover:bg-default-50 focus-visible:ring-1 focus-visible:ring-accent"
             >
               <div className="mb-2 flex items-start justify-between gap-2">
                 <h2 className="text-balance font-semibold text-foreground">{p.name}</h2>
