@@ -216,11 +216,6 @@ model: Composer
 prompt: |
   Plan the critical, high, and medium audit fixes.
 ---
-timestamp: 2026-09-08T09:43:00Z
-model: Composer
-prompt: |
-  By mistake I reordered the plan. Restore the original plan and start building it.
----
 timestamp: 2026-09-08T09:45:00Z
 model: Composer
 prompt: |
