@@ -169,7 +169,12 @@ prompt: |
   When filter, search, or sort happens there is page displacement — fix it across OMS tables.
   Product catalog search bar, filter, sort, and other options should be in one row.
 ---
-timestamp: 2026-09-08T08:45:00Z
+timestamp: 2026-09-08T08:36:00Z
+model: Composer
+prompt: |
+  In the cards view, keep the sort options in the same place as before — no need to move them.
+---
+timestamp: 2026-09-08T08:40:00Z
 model: Composer
 prompt: |
   Before creating the order show a confirmation dialog with the total, item quantity,
@@ -177,4 +182,56 @@ prompt: |
   If the user reaches order details from placing an order in the catalog, show an option
   to go back to the catalog (not the orders page). If they open order detail from the
   orders table, show an option to go back to the orders page.
+---
+timestamp: 2026-09-08T08:45:00Z
+model: Composer
+prompt: |
+  Show appropriate dialog messages in the OMS. Prefer brief user-facing copy instead of
+  explaining internal system behavior.
+---
+timestamp: 2026-09-08T08:51:00Z
+model: Composer
+prompt: |
+  The Product Catalog and Order History main pages should also use the matching icons
+  from the side navigation tabs.
+---
+timestamp: 2026-09-08T08:56:00Z
+model: Composer
+prompt: |
+  There is a bug that occurs sometimes and is hard to reproduce: even though orders exist,
+  the orders page shows no orders, but after a refresh they appear. There is no search,
+  filter, or other option causing this. Look into the application and dev logs to identify
+  the cause and fix it without affecting other features; if the fix would be a large change,
+  confirm before implementing. Explain what changed and why it was happening.
+---
+timestamp: 2026-09-08T09:04:00Z
+model: Composer
+prompt: |
+  Task is finished. Audit the changes made so far against PRODUCT.md and TASKS.md to confirm
+  we are not violating the spec and that all required tasks are done. Then do a thorough
+  code audit against coding standards if a document is present, otherwise general standards.
+---
+timestamp: 2026-09-08T09:38:00Z
+model: Composer
+prompt: |
+  Plan the critical, high, and medium audit fixes.
+---
+timestamp: 2026-09-08T09:43:00Z
+model: Composer
+prompt: |
+  By mistake I reordered the plan. Restore the original plan and start building it.
+---
+timestamp: 2026-09-08T09:45:00Z
+model: Composer
+prompt: |
+  Plan is correct — implement it without affecting other features and functionality.
+---
+timestamp: 2026-09-08T10:07:00Z
+model: Composer
+prompt: |
+  Add a collapsible sidebar for the OMS. On application start, prefill the application with
+  valid dummy data covering the needed states. Use unique ports so Docker Compose does not
+  conflict with ports used by other applications (reviewers should not hit the same problem).
+  Create a README explaining how to run the app, which ports are used, why ports were changed,
+  and other decisions taken so far.
 ---
