@@ -8,3 +8,35 @@ model: Composer
 prompt: |
   Before making any code change or suggesting what to do, please go through the entire project, refer to PRODUCT.md and TASKS.md for what is built and what to create, and once you have the idea please prompt what you understood by that.
 ---
+timestamp: 2026-09-08T05:17:00Z
+model: Composer
+prompt: |
+  Now let's plan what to build based on what is required.
+  First and most important thing is to build the minimum requirement; later make sure not to plan implementation which is out of scope.
+
+  Since there is already a working IMS, don't make any changes or plan any functionality changes in that.
+
+  The UI flow:
+  First when the UI opens show two logins; they are just dummy — no real authentication and no user entry needed.
+  These logins indicate IMS and OMS.
+  When clicked on IMS we will go to the current IMS page, and when clicked on OMS we will show the pages that are mentioned in the task.
+
+  Note: don't plan any UI changes as of now; currently follow the same UI as IMS.
+
+  No code changes at this stage — just plan the frontend components and backend components.
+---
+timestamp: 2026-09-08T05:30:00Z
+model: Composer
+prompt: |
+  Good — this plan is correct and validated. Please start building.
+---
+timestamp: 2026-09-08T05:37:00Z
+model: Composer
+prompt: |
+  Check if there is any restriction on adding a new package; if not, please add routing so the pages are easily navigable.
+---
+timestamp: 2026-09-08T06:20:00Z
+model: Composer
+prompt: |
+  When clicked on the Orders tab, please navigate to the order page.
+---

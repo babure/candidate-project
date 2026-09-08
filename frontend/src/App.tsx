@@ -1,46 +1,40 @@
-import { useState } from 'react';
-import AppLayout from './components/layout/AppLayout';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { UserProvider } from './context/UserContext';
+import SystemSelectPage from './features/SystemSelectPage';
 import ProductListPage from './features/products/ProductListPage';
 import ProductDetailPage from './features/products/ProductDetailPage';
-
-const USERS = [
-  { id: 1, name: 'Alice Martin', email: 'alice@marketnode.com' },
-  { id: 2, name: 'Bob Chen', email: 'bob@marketnode.com' },
-  { id: 3, name: 'Carol Smith', email: 'carol@marketnode.com' },
-];
+import StoreProductListPage from './features/store/StoreProductListPage';
+import StoreProductDetailPage from './features/store/StoreProductDetailPage';
+import OrderHistoryPage from './features/orders/OrderHistoryPage';
+import OrderDetailPage from './features/orders/OrderDetailPage';
+import ImsLayout from './layouts/ImsLayout';
+import OmsLayout from './layouts/OmsLayout';
 
 function App() {
-  const [page, setPage] = useState('list');
-  const [selectedProductId, setSelectedProductId] = useState<any>(null);
-  const [currentUser, setCurrentUser] = useState(USERS[0]);
-
-  const content = (() => {
-    if (page === 'detail' && selectedProductId) {
-      return (
-        <ProductDetailPage
-          id={selectedProductId}
-          onBack={() => setPage('list')}
-        />
-      );
-    }
-    return (
-      <ProductListPage
-        onSelectProduct={(id: any) => {
-          setSelectedProductId(id);
-          setPage('detail');
-        }}
-      />
-    );
-  })();
-
   return (
-    <AppLayout
-      currentUser={currentUser}
-      users={USERS}
-      onUserChange={setCurrentUser}
-    >
-      {content}
-    </AppLayout>
+    <UserProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<SystemSelectPage />} />
+
+          <Route path="/ims" element={<ImsLayout />}>
+            <Route index element={<Navigate to="products" replace />} />
+            <Route path="products" element={<ProductListPage />} />
+            <Route path="products/:id" element={<ProductDetailPage />} />
+          </Route>
+
+          <Route path="/oms" element={<OmsLayout />}>
+            <Route index element={<Navigate to="catalog" replace />} />
+            <Route path="catalog" element={<StoreProductListPage />} />
+            <Route path="catalog/:id" element={<StoreProductDetailPage />} />
+            <Route path="orders" element={<OrderHistoryPage />} />
+            <Route path="orders/:id" element={<OrderDetailPage />} />
+          </Route>
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </UserProvider>
   );
 }
 

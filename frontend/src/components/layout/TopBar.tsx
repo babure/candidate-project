@@ -1,10 +1,15 @@
-import { Avatar, Dropdown } from '@heroui/react';
+import { Avatar, Dropdown, Button } from '@heroui/react';
 
-export default function TopBar({ currentUser, users, onUserChange }: any) {
+export default function TopBar({ currentUser, users, onUserChange, onSwitchSystem }: any) {
   return (
     <header className="h-14 border-b border-default-200 bg-white flex items-center justify-between px-6 shrink-0">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <span className="font-bold text-lg">MarketNode</span>
+        {onSwitchSystem && (
+          <Button size="sm" variant="ghost" onPress={onSwitchSystem}>
+            Switch system
+          </Button>
+        )}
       </div>
       <Dropdown>
         <Dropdown.Trigger>

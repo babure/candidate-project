@@ -1,58 +1,47 @@
 import { useEffect, useState } from 'react';
-import { Table, Button, Chip } from '@heroui/react';
+import { Table, Chip } from '@heroui/react';
 import { useNavigate } from 'react-router-dom';
-import AddProductModal from './AddProductModal';
 
-export default function ProductListPage() {
+export default function StoreProductListPage() {
   const [products, setProducts] = useState<any[]>([]);
-  const [isAddOpen, setAddOpen] = useState(false);
   const navigate = useNavigate();
 
-  const loadProducts = () => {
-    fetch('/api/products')
+  useEffect(() => {
+    fetch('/api/store/products')
       .then((r) => r.json())
       .then((data) => setProducts(data));
-  };
-
-  useEffect(() => {
-    loadProducts();
   }, []);
 
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold">Products</h1>
-        <Button variant="primary" onPress={() => setAddOpen(true)}>
-          + Add Product
-        </Button>
+        <h1 className="text-2xl font-semibold">Product Catalog</h1>
       </div>
 
       <Table>
         <Table.ScrollContainer>
-          <Table.Content aria-label="Products table">
+          <Table.Content aria-label="Store products table">
             <Table.Header>
               <Table.Column isRowHeader>ID</Table.Column>
               <Table.Column>NAME</Table.Column>
               <Table.Column>CATEGORY</Table.Column>
-              <Table.Column>DESCRIPTION</Table.Column>
               <Table.Column>PRICE</Table.Column>
-              <Table.Column>STOCK</Table.Column>
+              <Table.Column>AVAILABILITY</Table.Column>
             </Table.Header>
             <Table.Body>
               {products.map((p: any) => (
                 <Table.Row
                   key={p.id}
                   className="cursor-pointer"
-                  onAction={() => navigate(`/ims/products/${p.id}`)}
+                  onAction={() => navigate(`/oms/catalog/${p.id}`)}
                 >
                   <Table.Cell>{p.id}</Table.Cell>
                   <Table.Cell className="font-medium">{p.name}</Table.Cell>
                   <Table.Cell>{p.category || '—'}</Table.Cell>
-                  <Table.Cell className="text-default-500">{p.description || '—'}</Table.Cell>
                   <Table.Cell>${p.price?.toFixed(2)}</Table.Cell>
                   <Table.Cell>
-                    <Chip size="sm" color={p.stock > 0 ? 'success' : 'danger'}>
-                      <Chip.Label>{p.stock}</Chip.Label>
+                    <Chip size="sm" color={p.inStock ? 'success' : 'danger'}>
+                      <Chip.Label>{p.inStock ? 'In stock' : 'Out of stock'}</Chip.Label>
                     </Chip>
                   </Table.Cell>
                 </Table.Row>
@@ -61,15 +50,6 @@ export default function ProductListPage() {
           </Table.Content>
         </Table.ScrollContainer>
       </Table>
-
-      <AddProductModal
-        isOpen={isAddOpen}
-        onClose={() => setAddOpen(false)}
-        onCreated={() => {
-          setAddOpen(false);
-          loadProducts();
-        }}
-      />
     </div>
   );
 }

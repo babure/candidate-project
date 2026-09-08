@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, TextField, Input, Label, Chip } from '@heroui/react';
+import { useNavigate, useParams } from 'react-router-dom';
 
-export default function ProductDetailPage({ id, onBack }: any) {
+export default function ProductDetailPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState<any>(null);
   const [editData, setEditData] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -48,7 +51,7 @@ export default function ProductDetailPage({ id, onBack }: any) {
 
   return (
     <div className="max-w-2xl">
-      <Button variant="ghost" onPress={onBack} className="mb-4">
+      <Button variant="ghost" onPress={() => navigate('/ims/products')} className="mb-4">
         ← Back to products
       </Button>
 
