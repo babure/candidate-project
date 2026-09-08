@@ -22,20 +22,28 @@ function SwitchIcon() {
   );
 }
 
+type TopBarProps = {
+  currentUser: any;
+  users: any[];
+  onUserChange: (user: any) => void;
+  system?: 'ims' | 'oms';
+};
+
 export default function TopBar({
   currentUser,
   users,
   onUserChange,
-  system = 'ims',
-}: any) {
+  system,
+}: TopBarProps) {
   const navigate = useNavigate();
+  const inApp = system === 'ims' || system === 'oms';
   const systemFullName =
     system === 'oms' ? 'Order Management System' : 'Inventory Management System';
   const switchTargetLabel = system === 'oms' ? 'IMS' : 'OMS';
 
   return (
     <header
-      className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-6"
+      className="flex h-20 shrink-0 items-center justify-between border-b border-white/10 px-6"
       style={{ backgroundColor: '#080809' }}
     >
       <div className="flex min-w-0 items-center gap-3">
@@ -48,27 +56,34 @@ export default function TopBar({
           <img
             src={marketnodeLogo}
             alt="MarketNode"
-            className="h-7 w-auto"
+            className="h-8 w-auto"
           />
         </button>
-        <span
-          className="truncate text-sm font-medium text-[#f5f5f3]"
-          aria-label={`Current system ${systemFullName}`}
-        >
-          {systemFullName}
-        </span>
+        {inApp ? (
+          <span
+            className="truncate text-sm font-medium text-[#f5f5f3]"
+            aria-label={`Current system ${systemFullName}`}
+          >
+            {systemFullName}
+          </span>
+        ) : null}
       </div>
 
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => navigate(system === 'oms' ? '/ims/products' : '/oms/catalog')}
-          className="inline-flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-sm text-[#f5f5f3]/80 outline-none transition-colors hover:bg-white/10 hover:text-[#f5f5f3] focus-visible:ring-2 focus-visible:ring-white/40"
-          aria-label={`Switch to ${switchTargetLabel}`}
-        >
-          <SwitchIcon />
-          Switch to {switchTargetLabel}
-        </button>
+      <div className="flex items-center gap-3">
+        {inApp ? (
+          <>
+            <button
+              type="button"
+              onClick={() => navigate(system === 'oms' ? '/ims/products' : '/oms/catalog')}
+              className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3.5 py-2 text-sm font-medium text-[#f5f5f3] outline-none transition-colors hover:border-white/50 hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/40"
+              aria-label={`Switch to ${switchTargetLabel}`}
+            >
+              <SwitchIcon />
+              Switch to {switchTargetLabel}
+            </button>
+            <span className="hidden h-6 w-px bg-white/25 sm:block" aria-hidden="true" />
+          </>
+        ) : null}
 
         <Dropdown>
           <Dropdown.Trigger>

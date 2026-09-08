@@ -69,3 +69,11 @@ prompt: |
   3. Beside the logo, instead of IMS or OMS use the full text, and remove that repeated text in the side nav section.
   4. On tab hover, change the pointer; for the highlight add a background; and have clear visual differences between active/inactive and selected/non-selected items.
 ---
+timestamp: 2026-09-08T07:00:00Z
+model: Composer
+prompt: |
+  Good — everything is working as expected. Make a few visual changes:
+  1. Add a header on the system change initial page; move the MarketNode branding to the top matching the OMS and IMS screens.
+  2. Add a divider between the username and the system change text, and make that control clearly look actionable.
+  3. Increase the height of the header to match the parent page.
+---
